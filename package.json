@@ -21,25 +21,52 @@
   "contributes": {
     "commands": [
       {
-        "command": "arcad-afs-for-ibm-i.helloWorld",
-        "title": "%hello.world%"
+        "command": "arcad-afs-for-ibm-i.refresh",
+        "title": "%refresh%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(refresh)"
       }
-    ]
+    ],
+    "views": {
+      "ibmi-explorer": [
+        {
+          "id": "afsServerBrowser",
+          "name": "%afs.server.browser%",
+          "when": "code-for-ibmi:connected"
+        }
+      ]
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "arcad-afs-for-ibm-i.refresh",
+          "when": "never"
+        }
+      ],
+      "view/title": [
+				{
+					"command": "arcad-afs-for-ibm-i.refresh",
+					"group": "navigation@99",
+					"when": "view == afsServerBrowser"
+				}
+      ]
+    }
   },
   "scripts": {
     "clean": "rimraf dist",
-		"build": "npm run clean && webpack --mode development",
-		"watch": "npm run clean && webpack --mode development --watch",
-		"vscode:prepublish": "npm run clean && webpack --mode production --devtool hidden-source-map",
-		"package": "vsce package --pre-release"
+    "build": "npm run clean && webpack --mode development",
+    "watch": "npm run clean && webpack --mode development --watch",
+    "vscode:prepublish": "npm run clean && webpack --mode production --devtool hidden-source-map",
+    "package": "vsce package --pre-release",
+    "nls": "npx @vscode/l10n-dev export --outDir ./l10n ./src"
   },
   "devDependencies": {
-		"@halcyontech/vscode-ibmi-types": "^2.2",
+    "@halcyontech/vscode-ibmi-types": "^2.2",
     "rimraf": "^5",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
     "@types/vscode": "^1.84.0",
-    "@types/node": "18.x", 
+    "@types/node": "18.x",
     "typescript": "^5.2.2",
     "esbuild-loader": "^3.0.1",
     "webpack": "^5.89.0",
