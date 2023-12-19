@@ -1,4 +1,9 @@
 {
   "afs.server.browser": "ARCAD AFS Servers",
-  "refresh":"Refresh"
+  "refresh":"Refresh",
+  "reload":"Reload available installations",
+  "start":"Start",
+  "stop":"Stop",
+  "show":"Show server information",
+  "edit":"Edit server"
 }

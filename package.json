@@ -19,12 +19,82 @@
   "main": "./dist/extension.js",
   "l10n": "./l10n",
   "contributes": {
+    "configuration": [
+      {
+        "title": "ARCAD-AFS for IBM i",
+        "properties": {
+          "arcad-afs.wrappers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "host"
+              ],
+              "properties": {
+                "host": {
+                  "type": "string"
+                },
+                "locations": {
+                  "type": "array",
+                  "default": [],
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "library"
+                    ],
+                    "properties": {
+                      "library": {
+                        "type": "string"
+                      },
+                      "iasp": {
+                        "type": "integer"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
     "commands": [
       {
         "command": "arcad-afs-for-ibm-i.refresh",
         "title": "%refresh%",
         "category": "ARCAD AFS for IBM i",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.reload",
+        "title": "%reload%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.start.server",
+        "title": "%start%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(play)"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.stop.server",
+        "title": "%stop%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.edit.server",
+        "title": "%edit%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.show.server",
+        "title": "%show%",
+        "category": "ARCAD AFS for IBM i"
       }
     ],
     "views": {
@@ -41,14 +111,61 @@
         {
           "command": "arcad-afs-for-ibm-i.refresh",
           "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.reload",
+          "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.start.server",
+          "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.stop.server",
+          "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.show.server",
+          "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.edit.server",
+          "when": "never"
         }
       ],
       "view/title": [
-				{
-					"command": "arcad-afs-for-ibm-i.refresh",
-					"group": "navigation@99",
-					"when": "view == afsServerBrowser"
-				}
+        {
+          "command": "arcad-afs-for-ibm-i.refresh",
+          "group": "navigation@99",
+          "when": "view == afsServerBrowser"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.reload",
+          "group": "navigation@999",
+          "when": "view == afsServerBrowser"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "arcad-afs-for-ibm-i.start.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "inline@10"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.stop.server",
+          "when": "view == afsServerBrowser && viewItem == afsserver_run",
+          "group": "inline@20"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.edit.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "01_afsserveractions@01"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.show.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "02_afsserveractions@01"
+        }
       ]
     }
   },
@@ -61,7 +178,7 @@
     "nls": "npx @vscode/l10n-dev export --outDir ./l10n ./src"
   },
   "devDependencies": {
-    "@halcyontech/vscode-ibmi-types": "^2.2",
+    "@halcyontech/vscode-ibmi-types": "^2.6",
     "rimraf": "^5",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
