@@ -1,4 +1,12 @@
 {
-  "The extension 'arcad-afs-for-ibm-i' is now active!": "The extension 'arcad-afs-for-ibm-i' is now active!",
-  "The extension 'arcad-afs-for-ibm-i' requires the 'halcyontechltd.code-for-ibmi' extension to be active!": "The extension 'arcad-afs-for-ibm-i' requires the 'halcyontechltd.code-for-ibmi' extension to be active!"
+  "Running": "Running",
+  "Stopped": "Stopped",
+  "Job": "Job",
+  "IFS path": "IFS path",
+  "Restarting AFS Server {0}...": "Restarting AFS Server {0}...",
+  "Starting AFS Server {0}...": "Starting AFS Server {0}...",
+  "Failed to restart AFS server {0}: {1}": "Failed to restart AFS server {0}: {1}",
+  "Failed to start AFS server {0}: {1}": "Failed to start AFS server {0}: {1}",
+  "Stopping AFS Server {0}...": "Stopping AFS Server {0}...",
+  "Failed to stop AFS server {0}: {1}": "Failed to stop AFS server {0}: {1}"
 }
