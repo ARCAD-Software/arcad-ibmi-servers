@@ -1,5 +1,8 @@
+import { QsysFsOptions } from "@halcyontech/vscode-ibmi-types";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
+import { openEditServerEditor } from "../editors/edit";
+import { openShowServerEditor } from "../editors/show";
 import { Configuration } from "../extension";
 import { AFSServer, AFSWrapperLocation } from "../types";
 
@@ -124,6 +127,12 @@ class AFSServerItem extends AFSBrowserItem {
       this.tooltip = this.tooltip = new vscode.MarkdownString(`- ${l10n.t("Job")}: ${server.jobNumber}/${server.jobUser}/${server.jobName}\n`, false)
         .appendMarkdown(`- ${l10n.t("IFS path")}: ${server.ifsPath}`);
     }
+
+    this.command = {
+      title: "",
+      command: "arcad-afs-for-ibm-i.show.server",
+      arguments: [this]
+    };
   }
 
   async start() {
@@ -160,12 +169,48 @@ class AFSServerItem extends AFSBrowserItem {
     }
   }
 
-  async show() {
-    throw new Error("Method not implemented.");
+  openLogs() {
+    vscode.commands.executeCommand("code-for-ibmi.openEditable", `${this.server.ifsPath}/logs/server.log`, 0, { readonly: true } as QsysFsOptions);
   }
 
-  async edit() {
-    throw new Error("Method not implemented.");
+  addToIFSBrowser() {
+    vscode.commands.executeCommand("code-for-ibmi.addIFSShortcut", { path: this.server.ifsPath });
+  }
+
+  show() {
+    openShowServerEditor(this.server);
+  }
+
+  edit() {
+    openEditServerEditor(this.server, restart => {
+      this.parent?.refresh();
+      if (restart) {
+        this.start();
+      }
+    });
+  }
+
+  async delete() {
+    const yes = l10n.t("Yes");
+    const yesIfs = l10n.t("Yes, including IFS files");
+    const answer = await vscode.window.showWarningMessage(l10n.t("Do you really want to delete AFS server {0}?", this.server.name), { modal: true },
+      yes, yesIfs);
+
+    if (answer === yes || answer === yesIfs) {
+      const result = await Code4i.runCommand(`${this.server.library}/DLTAFSSVR INSTANCE(${this.server.name}) DELETE(${answer === yesIfs ? '*YES' : '*NO'})`);
+      if (result.code === 0) {
+        if (this.server.running) {
+          vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully stopped and deleted.", this.server.name));
+        }
+        else {
+          vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully deleted.", this.server.name));
+        }
+        this.parent?.refresh();
+      }
+      else {
+        vscode.window.showErrorMessage(l10n.t("Failed to delete AFS server {0}: {1}", this.server.name, result.stdout));
+      }
+    }
   }
 }
 
@@ -184,7 +229,10 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.start.server", (server: AFSServerItem) => server.start()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.stop.server", (server: AFSServerItem) => server.stop()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem) => server.show()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit())
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem) => server.delete()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (server: AFSServerItem) => server.openLogs()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser())
   );
 
   Code4i.onEvent("connected", () => afsBrowser.refresh());

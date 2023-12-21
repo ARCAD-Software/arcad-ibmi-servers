@@ -32,4 +32,8 @@ export namespace Code4i {
   export function onEvent(event : IBMiEvent, todo: Function){
     codeForIBMi.instance.onEvent(event, todo);
   }
+
+  export function customUI(){
+    return codeForIBMi.customUI();
+  }
 }
