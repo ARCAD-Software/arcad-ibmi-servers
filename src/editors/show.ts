@@ -1,3 +1,4 @@
+import { ComplexTab } from "@halcyontech/vscode-ibmi-types/api/CustomUI";
 import { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { AFSServer } from "../types";
@@ -12,7 +13,7 @@ export async function openShowServerEditor(server: AFSServer) {
        ${addRow(l10n.t("Java properties"), `${server.javaProps}`)}
        ${addRow(l10n.t("Running"), `${server.running ? l10n.t("Yes") : l10n.t("No")}`)}
     </table>`);
-  const tabs = [{ label: l10n.t("{0} instance", server.name), fields: instanceSection.fields }];
+  const tabs : ComplexTab[] = [{ label: l10n.t("{0} instance", server.name), fields: instanceSection.fields }];
   if (server.running) {
     const [job] = await Code4i.runSQL(`Select * From Table(QSYS2.JOB_INFO(` +
       `JOB_USER_FILTER => '${server.user}', ` +

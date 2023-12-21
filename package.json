@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"
   },
+  "license":"MIT",
   "engines": {
     "vscode": "^1.84.0"
   },
