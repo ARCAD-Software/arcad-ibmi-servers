@@ -9,6 +9,10 @@
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"
   },
   "license": "MIT",
+  "author": {
+		"name": "ARCAD Software",
+		"url": "https://arcadsoftware.com"
+	},
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -17,8 +21,15 @@
     "HalcyonTechLtd.code-for-ibmi"
   ],
   "categories": [
-    "Other"
+    "Other"    
   ],
+  "keywords": [
+		"ibmi",		
+		"iseries",
+		"as400",
+    "arcad",
+    "AFS"
+	],
   "activationEvents": [
     "onStartupFinished"
   ],
