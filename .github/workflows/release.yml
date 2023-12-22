@@ -38,8 +38,10 @@ jobs:
     - name: Commit changes and move release tag
       run: |      
         git commit --allow-empty -a -m "Release ${{ github.ref_name }}"
-        git tag -f ${{ github.ref_name }}
-        git push --tags --force
+        git tag -f ${{ github.ref_name }}        
+
+    - name: Push changes
+      run: git push --tags --force
 
     - name: Bump version number for next cycle
       run: npm version --no-git-tag-version prerelease --preid snapshot
