@@ -20,7 +20,7 @@ jobs:
         node-version: 18
 
     - name: Update version number
-      run: npm --no-git-tag-version version ${{ github.ref_name }}
+      run: npm version --allow-same-version --no-git-tag-version ${{ github.ref_name }}
 
     - name: Install dependencies
       run: npm ci
@@ -34,8 +34,8 @@ jobs:
         name: arcad-ibmi-servers
         path: ./arcad-ibmi-servers*.vsix
       
-    - name: Bump version number
-      run: npm --no-git-tag-version version patch
+    - name: Bump version number for next cycle
+      run: npm version --no-git-tag-version prerelease --preid snapshot
 
     - name: Commit version number change
       uses: GuillaumeFalourd/git-commit-push@v1.3
