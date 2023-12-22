@@ -54,7 +54,11 @@ jobs:
     - name: Bump version number for next cycle
       run: npm version --no-git-tag-version prerelease --preid snapshot
 
+    - name: Read new version
+      id: new-version
+      uses: beaconbrigade/package-json-version@v0.3
+
     - name: Commit version number change
       run: |
-        git commit -a -m "Post release build commit"
+        git commit -a -m "Starting ${{ steps.new-version.outputs.version }} development"
         git push
