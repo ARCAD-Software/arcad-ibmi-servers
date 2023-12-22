@@ -24,8 +24,13 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Build and package
-      run: npx @vscode/vsce package
+    - name: Build and publish
+      env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+          OPENVSX_TOKEN: ${{ secrets.OPENVSX_TOKEN }}
+      run: |        
+        npx @vscode/vsce publish --pat $VSCE_TOKEN
+        npx ovsx publish --packagePath arcad-ibmi-servers-${{ github.ref_name }}.vsix --pat $OPENVSX_TOKEN
 
     - name: Attach vsix
       uses: svenstaro/upload-release-action@v2
