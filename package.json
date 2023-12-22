@@ -3,16 +3,16 @@
   "publisher": "arcadsoftware",
   "displayName": "ARCAD-IBM i Servers Manager",
   "description": "This extension lets you manage your ARCAD Servers installed on IBM i. Powered by Code for IBM i.",
-  "version": "0.0.2-snapshot.0",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"
   },
   "license": "MIT",
   "author": {
-		"name": "ARCAD Software",
-		"url": "https://arcadsoftware.com"
-	},
+    "name": "ARCAD Software",
+    "url": "https://arcadsoftware.com"
+  },
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -21,15 +21,15 @@
     "HalcyonTechLtd.code-for-ibmi"
   ],
   "categories": [
-    "Other"    
+    "Other"
   ],
   "keywords": [
-		"ibmi",		
-		"iseries",
-		"as400",
+    "ibmi",
+    "iseries",
+    "as400",
     "arcad",
     "AFS"
-	],
+  ],
   "activationEvents": [
     "onStartupFinished"
   ],
