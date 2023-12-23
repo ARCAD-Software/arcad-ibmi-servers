@@ -134,24 +134,43 @@ class AFSServerItem extends AFSBrowserItem {
     };
   }
 
-  async start() {
-    const result = await vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: this.server.running ? l10n.t("Restarting AFS Server {0}...", this.server.name) : l10n.t("Starting AFS Server {0}...", this.server.name)
-    },
-      async progress => {
-        return await Code4i.runCommand(`${this.server.library}/STRAFSSVR INSTANCE(${this.server.name})`);
+  async start(debug?: boolean) {
+    let debugPort = 0;
+    if (debug) {
+      await vscode.window.showInputBox({
+        title: l10n.t("Start AFS Server {0} in debug mode", this.server.name),
+        prompt: l10n.t("Enter a debug port number"),
+        validateInput: v => {
+          debugPort = Number(v);
+          if(isNaN(debugPort) || debugPort < 1 || debugPort > 65535){
+            return l10n.t("Debug port must be a number between 1 and 65535");
+          }
+          else{
+            return undefined;
+          }          
+        }
       });
-
-    if (result.code === 0) {
-      this.parent?.refresh();
     }
-    else {
-      if (this.server.running) {
-        vscode.window.showErrorMessage(l10n.t("Failed to restart AFS server {0}: {1}", this.server.name, result.stderr));
+
+    if (!debug || debugPort) {
+      const result = await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: this.server.running ? l10n.t("Restarting AFS Server {0}...", this.server.name) : l10n.t("Starting AFS Server {0}...", this.server.name)
+      },
+        async progress => {
+          return await Code4i.runCommand(`${this.server.library}/STRAFSSVR INSTANCE(${this.server.name}) DBGPORT(${debugPort})`);
+        });
+
+      if (result.code === 0) {
+        this.parent?.refresh();
       }
       else {
-        vscode.window.showErrorMessage(l10n.t("Failed to start AFS server {0}: {1}", this.server.name, result.stderr));
+        if (this.server.running) {
+          vscode.window.showErrorMessage(l10n.t("Failed to restart AFS server {0}: {1}", this.server.name, result.stderr));
+        }
+        else {
+          vscode.window.showErrorMessage(l10n.t("Failed to start AFS server {0}: {1}", this.server.name, result.stderr));
+        }
       }
     }
   }
@@ -230,6 +249,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.refresh", (item?: AFSBrowserItem) => afsBrowser.refresh(item)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.reload", () => afsBrowser.reload()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.start.server", (server: AFSServerItem) => server.start()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.debug.server", (server: AFSServerItem) => server.start(true)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.stop.server", (server: AFSServerItem) => server.stop()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem) => server.show()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),

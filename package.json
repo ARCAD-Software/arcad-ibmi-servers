@@ -98,6 +98,12 @@
         "icon": "$(play)"
       },
       {
+        "command": "arcad-afs-for-ibm-i.debug.server",
+        "title": "%debug%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(debug-alt)"
+      },
+      {
         "command": "arcad-afs-for-ibm-i.stop.server",
         "title": "%stop%",
         "category": "ARCAD AFS for IBM i",
@@ -158,6 +164,10 @@
           "when": "never"
         },
         {
+          "command": "arcad-afs-for-ibm-i.debug.server",
+          "when": "never"
+        },
+        {
           "command": "arcad-afs-for-ibm-i.stop.server",
           "when": "never"
         },
@@ -203,6 +213,11 @@
           "command": "arcad-afs-for-ibm-i.start.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
           "group": "inline@10"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.debug.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "inline@15"
         },
         {
           "command": "arcad-afs-for-ibm-i.stop.server",
