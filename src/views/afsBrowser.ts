@@ -1,4 +1,3 @@
-import { QsysFsOptions } from "@halcyontech/vscode-ibmi-types";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { openEditServerEditor } from "../editors/edit";
@@ -170,7 +169,11 @@ class AFSServerItem extends AFSBrowserItem {
   }
 
   openLogs() {
-    vscode.commands.executeCommand("code-for-ibmi.openEditable", `${this.server.ifsPath}/logs/server.log`, 0, { readonly: true } as QsysFsOptions);
+    Code4i.open(`${this.server.ifsPath}/logs/server.log`, { readonly: true });
+  }
+
+  openConfiguration() {
+    Code4i.open(`${this.server.ifsPath}/configuration/osgi.cm.ini`);
   }
 
   addToIFSBrowser() {
@@ -232,6 +235,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem) => server.delete()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (server: AFSServerItem) => server.openLogs()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (server: AFSServerItem) => server.openConfiguration()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser())
   );
 

@@ -1,12 +1,13 @@
 {
+  "add.to.ifs.browser": "Add to IFS browser",
   "afs.server.browser": "ARCAD AFS Servers",
-  "refresh":"Refresh",
-  "reload":"Reload available installations",
-  "start":"Start",
-  "stop":"Stop",
-  "show":"Show server information",
-  "edit":"Edit server",
-  "delete":"Delete server",
-  "open.logs":"Open server logs",
-  "add.to.ifs.browser":"Add to IFS browser"
+  "delete": "Delete server",
+  "edit": "Edit server",
+  "open.configuration": "Open configuration",
+  "open.logs": "Open logs",
+  "refresh": "Refresh",
+  "reload": "Reload available installations",
+  "show": "Show server information",
+  "start": "Start",
+  "stop": "Stop"
 }

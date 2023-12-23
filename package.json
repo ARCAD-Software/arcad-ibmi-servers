@@ -124,6 +124,11 @@
         "category": "ARCAD AFS for IBM i"
       },
       {
+        "command": "arcad-afs-for-ibm-i.open.configuration.server",
+        "title": "%open.configuration%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
         "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
         "title": "%add.to.ifs.browser%",
         "category": "ARCAD AFS for IBM i"
@@ -173,6 +178,10 @@
           "when": "never"
         },
         {
+          "command": "arcad-afs-for-ibm-i.open.configuration.server",
+          "when": "never"
+        },
+        {
           "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
           "when": "never"
         }
@@ -214,6 +223,11 @@
           "command": "arcad-afs-for-ibm-i.open.logs.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
           "group": "02_afsserveractions@02"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.open.configuration.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "02_afsserveractions@03"
         },
         {
           "command": "arcad-afs-for-ibm-i.delete.server",
