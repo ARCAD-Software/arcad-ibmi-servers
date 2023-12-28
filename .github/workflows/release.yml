@@ -52,7 +52,7 @@ jobs:
       run: git push --tags --force
 
     - name: Bump version number for next cycle
-      run: npm version --no-git-tag-version prerelease --preid snapshot
+      run: npm version --no-git-tag-version prerelease --preid dev
 
     - name: Read new version
       id: new-version
