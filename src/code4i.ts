@@ -14,10 +14,12 @@ export namespace Code4i {
     }
   }
 
-  export async function runCommand(command: string) {
+  export async function runCommand(command: string, currentLibrary?:string) {
     return codeForIBMi.instance.getConnection().runCommand({
       command,
-      noLibList: true
+      env:{                
+        "&CURLIB": currentLibrary || ''
+      }
     });
   }
 

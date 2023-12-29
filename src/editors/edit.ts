@@ -47,7 +47,7 @@ export async function openEditServerEditor(server: AFSServer, afterSave: (restar
       command.push(`PROPS('${page.data.javaProps}${page.data.javaProps && page.data.javaProps.endsWith(';') ? '' : ';'}')`);
     }
 
-    const result = await Code4i.runCommand(command.join(" "));
+    const result = await Code4i.runCommand(command.join(" "), server.library);
     if (result.code === 0) {
       vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully updated", server.name));
       afterSave(page.data.buttons === "saveRestart");

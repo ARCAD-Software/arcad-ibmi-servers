@@ -142,12 +142,12 @@ class AFSServerItem extends AFSBrowserItem {
         prompt: l10n.t("Enter a debug port number"),
         validateInput: v => {
           debugPort = Number(v);
-          if(isNaN(debugPort) || debugPort < 1 || debugPort > 65535){
+          if (isNaN(debugPort) || debugPort < 1 || debugPort > 65535) {
             return l10n.t("Debug port must be a number between 1 and 65535");
           }
-          else{
+          else {
             return undefined;
-          }          
+          }
         }
       });
     }
@@ -158,7 +158,7 @@ class AFSServerItem extends AFSBrowserItem {
         title: this.server.running ? l10n.t("Restarting AFS Server {0}...", this.server.name) : l10n.t("Starting AFS Server {0}...", this.server.name)
       },
         async progress => {
-          return await Code4i.runCommand(`${this.server.library}/STRAFSSVR INSTANCE(${this.server.name}) DBGPORT(${debugPort})`);
+          return await Code4i.runCommand(`STRAFSSVR INSTANCE(${this.server.name}) DBGPORT(${debugPort})`, this.server.library);
         });
 
       if (result.code === 0) {
@@ -177,7 +177,7 @@ class AFSServerItem extends AFSBrowserItem {
 
   async stop() {
     const result = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Stopping AFS Server {0}...", this.server.name) }, async progress => {
-      return await Code4i.runCommand(`${this.server.library}/ENDAFSSVR INSTANCE(${this.server.name})`);
+      return await Code4i.runCommand(`ENDAFSSVR INSTANCE(${this.server.name})`, this.server.library);
     });
     if (result.code === 0) {
       this.parent?.refresh();
@@ -219,7 +219,7 @@ class AFSServerItem extends AFSBrowserItem {
       yes, yesIfs);
 
     if (answer === yes || answer === yesIfs) {
-      const result = await Code4i.runCommand(`${this.server.library}/DLTAFSSVR INSTANCE(${this.server.name}) DELETE(${answer === yesIfs ? '*YES' : '*NO'})`);
+      const result = await Code4i.runCommand(`DLTAFSSVR INSTANCE(${this.server.name}) DELETE(${answer === yesIfs ? '*YES' : '*NO'})`, this.server.library);
       if (result.code === 0) {
         if (this.server.running) {
           vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully stopped and deleted.", this.server.name));
