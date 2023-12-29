@@ -36,48 +36,7 @@
   "main": "./dist/extension.js",
   "l10n": "./l10n",
   "contributes": {
-    "configuration": [
-      {
-        "title": "ARCAD-IBM i Servers",
-        "properties": {
-          "arcad-afs.wrappers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "host"
-              ],
-              "properties": {
-                "host": {
-                  "type": "string"
-                },
-                "locations": {
-                  "type": "array",
-                  "default": [],
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "library"
-                    ],
-                    "properties": {
-                      "library": {
-                        "type": "string"
-                      },
-                      "iasp": {
-                        "type": "integer"
-                      },
-                      "version": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    ],
+    "configuration": [],
     "commands": [
       {
         "command": "arcad-afs-for-ibm-i.refresh",

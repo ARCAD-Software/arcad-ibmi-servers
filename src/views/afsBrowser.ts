@@ -2,11 +2,11 @@ import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { openEditServerEditor } from "../editors/edit";
 import { openShowServerEditor } from "../editors/show";
-import { Configuration } from "../extension";
 import { AFSServer, AFSWrapperLocation } from "../types";
 
 class AFSServerBrowser implements vscode.TreeDataProvider<AFSBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<AFSBrowserItem | undefined | null | void>;
+  private readonly locations: AFSWrapperLocation[] = [];
   readonly onDidChangeTreeData = this.emitter.event;
 
   refresh(target?: AFSBrowserItem) {
@@ -22,7 +22,10 @@ class AFSServerBrowser implements vscode.TreeDataProvider<AFSBrowserItem> {
       return element.getChildren?.();
     }
     else {
-      return (await this.load(false)).locations.map(location => new AFSWrapperItem(location));
+      if (!this.locations.length) {
+        this.locations.push(...await this.findLocations());
+      }
+      return this.locations.map(location => new AFSWrapperItem(location));
     }
   }
 
@@ -31,29 +34,26 @@ class AFSServerBrowser implements vscode.TreeDataProvider<AFSBrowserItem> {
   }
 
   private async findLocations(): Promise<AFSWrapperLocation[]> {
-    const rows = await Code4i.runSQL(
-      `Select OBJLIB, IASP_NUMBER, DATA_AREA_VALUE ` +
-      `From Table(QSYS2.OBJECT_STATISTICS('*ALL','*DTAARA','AFSVERSION')) ` +
-      `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => OBJNAME, DATA_AREA_LIBRARY => OBJLIB))`
-    );
-    return rows.map(row => ({
-      library: String(row.OBJLIB).trim(),
-      iasp: Number(row.IASP_NUMBER || 0),
-      version: String(row.DATA_AREA_VALUE).trim(),
-    })) as AFSWrapperLocation[];
+    return await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: l10n.t("Loading ARCAD servers...")
+    },
+      async progress => {
+        const rows = await Code4i.runSQL(
+          `Select OBJLIB, IASP_NUMBER, DATA_AREA_VALUE ` +
+          `From Table(QSYS2.OBJECT_STATISTICS('*ALL','*DTAARA','AFSVERSION')) ` +
+          `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => OBJNAME, DATA_AREA_LIBRARY => OBJLIB))`
+        );
+        return rows.map(row => ({
+          library: String(row.OBJLIB).trim(),
+          iasp: Number(row.IASP_NUMBER || 0),
+          version: String(row.DATA_AREA_VALUE).trim(),
+        })) as AFSWrapperLocation[];
+      });
   }
 
-  private async load(reload: boolean) {
-    const wrappers = await Configuration.getWrappers();
-    if (!wrappers.locations.length || reload) {
-      wrappers.locations = await this.findLocations();
-      await Configuration.updateWrappers(wrappers);
-    }
-    return wrappers;
-  }
-
-  async reload() {
-    await this.load(true);
+  reload() {
+    this.locations.splice(0, this.locations.length);
     this.refresh();
   }
 }
