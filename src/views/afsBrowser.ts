@@ -259,7 +259,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser())
   );
 
-  Code4i.onEvent("connected", () => afsBrowser.refresh());
+  Code4i.onEvent("connected", () => afsBrowser.reload());
 }
 
 function getServerIcon(server: AFSServer): Icon {
