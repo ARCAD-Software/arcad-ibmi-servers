@@ -3,7 +3,7 @@
   "publisher": "arcadsoftware",
   "displayName": "ARCAD-IBM i Servers Manager",
   "description": "This extension lets you manage your ARCAD Servers installed on IBM i. Powered by Code for IBM i.",
-  "version": "0.0.3-dev.0",
+  "version": "0.0.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"
@@ -96,7 +96,7 @@
       {
         "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
         "title": "%add.to.ifs.browser%",
-        "category": "ARCAD AFS for IBM i"      
+        "category": "ARCAD AFS for IBM i"
       },
       {
         "command": "arcad-afs-for-ibm-i.clear.configuration.server",
