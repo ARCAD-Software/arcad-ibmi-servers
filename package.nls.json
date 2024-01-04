@@ -1,6 +1,7 @@
 {
   "add.to.ifs.browser": "Add to IFS browser",
   "afs.server.browser": "ARCAD Servers",
+  "clear.configuration": "Clear configuration cache",
   "debug": "Start (debug)",
   "delete": "Delete server",
   "edit": "Edit server",

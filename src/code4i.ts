@@ -14,13 +14,17 @@ export namespace Code4i {
     }
   }
 
-  export async function runCommand(command: string, currentLibrary?:string) {
+  export async function runCommand(command: string, currentLibrary?: string) {
     return codeForIBMi.instance.getConnection().runCommand({
       command,
-      env:{                
+      env: {
         "&CURLIB": currentLibrary || ''
       }
     });
+  }
+
+  export async function runShellCommand(command: string) {
+    return codeForIBMi.instance.getConnection().sendCommand({ command });
   }
 
   export async function runSQL(statement: string) {

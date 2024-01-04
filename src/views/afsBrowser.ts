@@ -4,6 +4,8 @@ import { openEditServerEditor } from "../editors/edit";
 import { openShowServerEditor } from "../editors/show";
 import { AFSServer, AFSWrapperLocation } from "../types";
 
+const CONFIG_FILES = ["org.eclipse.equinox.simpleconfigurator", "config.ini", "osgi.cm.ini"];
+
 class AFSServerBrowser implements vscode.TreeDataProvider<AFSBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<AFSBrowserItem | undefined | null | void>;
   private readonly locations: AFSWrapperLocation[] = [];
@@ -195,6 +197,37 @@ class AFSServerItem extends AFSBrowserItem {
     Code4i.open(`${this.server.ifsPath}/configuration/osgi.cm.ini`);
   }
 
+  async clearConfiguration() {
+    if (await vscode.window.showWarningMessage(l10n.t("Are you sure you want to clear {0} server configuration area? (server will be stopped)", this.server.name), { modal: true }, l10n.t("Confirm"))) {
+      const configurationDirectory = `${this.server.ifsPath}/configuration`;
+      const tempDirectory = `${Code4i.getConnection().config?.tempDir}/arcadserver_${this.server.name}`;
+      const prepareTempDirectory = await Code4i.runShellCommand(`rm -rf ${tempDirectory} && mkdir -p ${tempDirectory}`);
+      if (prepareTempDirectory.code === 0) {
+        try {
+          await this.stop();
+          const clearCommand = [
+            `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
+            `rm -rf ${configurationDirectory}/*`,
+            `mv ${CONFIG_FILES.map(f => `${tempDirectory}/${f}`).join(" ")} ${configurationDirectory}`
+          ];
+          const clearResult = await Code4i.runShellCommand(clearCommand.join(" && "));
+          if (clearResult.code === 0) {
+            vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} configuration area was successfully cleared. Please restart it.", this.server.name));
+          }
+          else {
+            vscode.window.showErrorMessage(l10n.t("Failed to clear {0} configuration area {0}: {1}", this.server.name, clearResult.stderr));
+          }
+        }
+        finally {
+          await Code4i.runShellCommand(`rm -rf ${tempDirectory}`);
+        }
+      }
+      else {
+        vscode.window.showErrorMessage(l10n.t("Failed to create temporary directory {0}: {1}", tempDirectory, prepareTempDirectory.stderr));
+      }
+    }
+  }
+
   addToIFSBrowser() {
     vscode.commands.executeCommand("code-for-ibmi.addIFSShortcut", { path: this.server.ifsPath });
   }
@@ -256,6 +289,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem) => server.delete()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (server: AFSServerItem) => server.openLogs()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (server: AFSServerItem) => server.openConfiguration()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.configuration.server", (server: AFSServerItem) => server.clearConfiguration()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser())
   );
 

@@ -96,6 +96,11 @@
       {
         "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
         "title": "%add.to.ifs.browser%",
+        "category": "ARCAD AFS for IBM i"      
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.clear.configuration.server",
+        "title": "%clear.configuration%",
         "category": "ARCAD AFS for IBM i"
       }
     ],
@@ -153,6 +158,10 @@
         {
           "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
           "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.clear.configuration.server",
+          "when": "never"
         }
       ],
       "view/title": [
@@ -204,9 +213,14 @@
           "group": "02_afsserveractions@03"
         },
         {
-          "command": "arcad-afs-for-ibm-i.delete.server",
+          "command": "arcad-afs-for-ibm-i.clear.configuration.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
           "group": "03_afsserveractions@01"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.delete.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "04_afsserveractions@01"
         }
       ]
     }
