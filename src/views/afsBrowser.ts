@@ -140,7 +140,7 @@ class AFSServerItem extends AFSBrowserItem {
     let debugPort = 0;
     if (debug) {
       await vscode.window.showInputBox({
-        title: l10n.t("Start AFS Server {0} in debug mode", this.server.name),
+        title: l10n.t("Start ARCAD Server {0} in debug mode", this.server.name),
         prompt: l10n.t("Enter a debug port number"),
         validateInput: v => {
           debugPort = Number(v);
@@ -157,7 +157,7 @@ class AFSServerItem extends AFSBrowserItem {
     if (!debug || debugPort) {
       const result = await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: this.server.running ? l10n.t("Restarting AFS Server {0}...", this.server.name) : l10n.t("Starting AFS Server {0}...", this.server.name)
+        title: this.server.running ? l10n.t("Restarting ARCAD Server {0}...", this.server.name) : l10n.t("Starting ARCAD Server {0}...", this.server.name)
       },
         async progress => {
           return await Code4i.runCommand(`STRAFSSVR INSTANCE(${this.server.name}) DBGPORT(${debugPort})`, this.server.library);
@@ -168,24 +168,24 @@ class AFSServerItem extends AFSBrowserItem {
       }
       else {
         if (this.server.running) {
-          vscode.window.showErrorMessage(l10n.t("Failed to restart AFS server {0}: {1}", this.server.name, result.stderr));
+          vscode.window.showErrorMessage(l10n.t("Failed to restart ARCAD Server {0}: {1}", this.server.name, result.stderr));
         }
         else {
-          vscode.window.showErrorMessage(l10n.t("Failed to start AFS server {0}: {1}", this.server.name, result.stderr));
+          vscode.window.showErrorMessage(l10n.t("Failed to start ARCAD Server {0}: {1}", this.server.name, result.stderr));
         }
       }
     }
   }
 
   async stop() {
-    const result = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Stopping AFS Server {0}...", this.server.name) }, async progress => {
+    const result = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Stopping ARCAD Server {0}...", this.server.name) }, async progress => {
       return await Code4i.runCommand(`ENDAFSSVR INSTANCE(${this.server.name})`, this.server.library);
     });
     if (result.code === 0) {
       this.parent?.refresh();
     }
     else {
-      vscode.window.showErrorMessage(l10n.t("Failed to stop AFS server {0}: {1}", this.server.name, result.stderr));
+      vscode.window.showErrorMessage(l10n.t("Failed to stop ARCAD Server {0}: {1}", this.server.name, result.stderr));
     }
   }
 
@@ -248,22 +248,22 @@ class AFSServerItem extends AFSBrowserItem {
   async delete() {
     const yes = l10n.t("Yes");
     const yesIfs = l10n.t("Yes, including IFS files");
-    const answer = await vscode.window.showWarningMessage(l10n.t("Do you really want to delete AFS server {0}?", this.server.name), { modal: true },
+    const answer = await vscode.window.showWarningMessage(l10n.t("Do you really want to delete ARCAD Server {0}?", this.server.name), { modal: true },
       yes, yesIfs);
 
     if (answer === yes || answer === yesIfs) {
       const result = await Code4i.runCommand(`DLTAFSSVR INSTANCE(${this.server.name}) DELETE(${answer === yesIfs ? '*YES' : '*NO'})`, this.server.library);
       if (result.code === 0) {
         if (this.server.running) {
-          vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully stopped and deleted.", this.server.name));
+          vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} successfully stopped and deleted.", this.server.name));
         }
         else {
-          vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully deleted.", this.server.name));
+          vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} successfully deleted.", this.server.name));
         }
         this.parent?.refresh();
       }
       else {
-        vscode.window.showErrorMessage(l10n.t("Failed to delete AFS server {0}: {1}", this.server.name, result.stdout));
+        vscode.window.showErrorMessage(l10n.t("Failed to delete ARCAD Server {0}: {1}", this.server.name, result.stdout));
       }
     }
   }

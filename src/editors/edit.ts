@@ -49,11 +49,11 @@ export async function openEditServerEditor(server: AFSServer, afterSave: (restar
 
     const result = await Code4i.runCommand(command.join(" "), server.library);
     if (result.code === 0) {
-      vscode.window.showInformationMessage(l10n.t("AFS server {0} successfully updated", server.name));
+      vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} successfully updated", server.name));
       afterSave(page.data.buttons === "saveRestart");
     }
     else {
-      vscode.window.showErrorMessage(l10n.t("Failed to update AFS server {0}: {1}", server.name, result.stdout));
+      vscode.window.showErrorMessage(l10n.t("Failed to update ARCAD Server {0}: {1}", server.name, result.stdout));
     }
   }
 
