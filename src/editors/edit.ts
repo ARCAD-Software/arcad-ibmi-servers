@@ -1,15 +1,10 @@
 
-import vscode, { l10n } from "vscode";
+import { l10n } from "vscode";
 import { Code4i } from "../code4i";
-import { AFSServer } from "../types";
+import { ServerDAO } from "../dao/serverDAO";
+import { AFSServer, ServerUpdate } from "../types";
 
-type AFSServerPage = {
-  user: string
-  jobqName: string
-  jobqLibrary: string
-  ifsPath: string
-  javaProps: string
-  javaHome: string
+type AFSServerPage = ServerUpdate & {
   buttons: 'save' | 'saveRestart'
 };
 
@@ -29,32 +24,8 @@ export async function openEditServerEditor(server: AFSServer, afterSave: (restar
 
   if (page && page.data) {
     page.panel.dispose();
-
-    const command = [`${server.library}/CHGAFSSVR`, `INSTANCE(${server.name})`];
-    if (page.data.user !== server.user) {
-      command.push(`USER(${page.data.user})`);
-    }
-    if (page.data.jobqName !== server.jobqName || page.data.jobqLibrary !== server.jobqLibrary) {
-      command.push(`JOBQ(${page.data.jobqLibrary}/${page.data.jobqName})`);
-    }
-    if (page.data.ifsPath !== server.ifsPath) {
-      command.push(`IFSPATH('${page.data.ifsPath}')`);
-    }
-    if (page.data.javaHome !== server.javaHome) {
-      command.push(`JAVAHOME('${page.data.javaHome})'`);
-    }
-    if (page.data.javaProps !== server.javaProps) {
-      command.push(`PROPS('${page.data.javaProps}${page.data.javaProps && page.data.javaProps.endsWith(';') ? '' : ';'}')`);
-    }
-
-    const result = await Code4i.runCommand(command.join(" "), server.library);
-    if (result.code === 0) {
-      vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} successfully updated", server.name));
+    if (await ServerDAO.updateServer(server, page.data)) {
       afterSave(page.data.buttons === "saveRestart");
     }
-    else {
-      vscode.window.showErrorMessage(l10n.t("Failed to update ARCAD Server {0}: {1}", server.name, result.stdout));
-    }
   }
-
 }
