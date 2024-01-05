@@ -1,10 +1,9 @@
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
+import { ServerDAO } from "../dao/serverDAO";
 import { openEditServerEditor } from "../editors/edit";
 import { openShowServerEditor } from "../editors/show";
 import { AFSServer, AFSWrapperLocation } from "../types";
-
-const CONFIG_FILES = ["org.eclipse.equinox.simpleconfigurator", "config.ini", "osgi.cm.ini"];
 
 class AFSServerBrowser implements vscode.TreeDataProvider<AFSBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<AFSBrowserItem | undefined | null | void>;
@@ -92,26 +91,7 @@ class AFSWrapperItem extends AFSBrowserItem {
   }
 
   async getChildren() {
-    return (await Code4i.runSQL(`Select * From ${this.location.library}.AFSSERVERS ` +
-      `Cross Join Table(QSYS2.GET_JOB_INFO(AFS_JOBNUMBER || '/' || AFS_JOBUSER || '/' ||AFS_JOBNAME)) ` +
-      `For fetch only`)
-    )
-      .map(row => ({
-        library: this.location.library,
-        name: String(row.AFS_NAME).trim(),
-        jobqName: String(row.AFS_JOBQNAME).trim(),
-        jobqLibrary: String(row.AFS_JOBQLIB).trim(),
-        ifsPath: String(row.AFS_IFSPATH).trim(),
-        user: String(row.AFS_USER).trim(),
-        javaProps: String(row.AFS_PROPS).trim(),
-        javaHome: String(row.AFS_JAVA_HOME).trim(),
-        jobName: String(row.AFS_JOBNAME).trim(),
-        jobUser: String(row.AFS_JOBUSER).trim(),
-        jobNumber: String(row.AFS_JOBNUMBER).trim(),
-        running: Boolean(row.V_JOB_STATUS === '*ACTIVE'),
-        jobStatus: row.V_ACTIVE_JOB_STATUS ? String(row.V_ACTIVE_JOB_STATUS).trim() : undefined
-      }) as AFSServer)
-      .map(server => new AFSServerItem(this, server));
+    return (await ServerDAO.listServers(this.location.library)).map(server => new AFSServerItem(this, server));
   }
 }
 
@@ -124,9 +104,15 @@ class AFSServerItem extends AFSBrowserItem {
     });
     this.contextValue = `afsserver_${server.running ? "run" : ""}`;
     this.description = server.running ? l10n.t("Running") : l10n.t("Stopped");
+    this.tooltip = new vscode.MarkdownString(`- ${l10n.t("IFS path")}: ${server.ifsPath}`, false);
+    if (server.configuration.rest?.port) {
+      this.tooltip.appendMarkdown(`- ${l10n.t("HTTP port")}: ${server.configuration.rest?.port || "-"}\n`);
+    }
+    if (server.configuration.rest?.portssl) {
+      this.tooltip.appendMarkdown(`- ${l10n.t("HTTPs port")}: ${server.configuration.rest?.portssl || "-"}\n`);
+    }
     if (server.running) {
-      this.tooltip = this.tooltip = new vscode.MarkdownString(`- ${l10n.t("Job")}: ${server.jobNumber}/${server.jobUser}/${server.jobName}\n`, false)
-        .appendMarkdown(`- ${l10n.t("IFS path")}: ${server.ifsPath}`);
+      this.tooltip.appendMarkdown(`- ${l10n.t("Job")}: ${server.jobNumber}/${server.jobUser}/${server.jobName}\n`);
     }
 
     this.command = {
@@ -155,76 +141,22 @@ class AFSServerItem extends AFSBrowserItem {
     }
 
     if (!debug || debugPort) {
-      const result = await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: this.server.running ? l10n.t("Restarting ARCAD Server {0}...", this.server.name) : l10n.t("Starting ARCAD Server {0}...", this.server.name)
-      },
-        async progress => {
-          return await Code4i.runCommand(`STRAFSSVR INSTANCE(${this.server.name}) DBGPORT(${debugPort})`, this.server.library);
-        });
-
-      if (result.code === 0) {
+      if (await ServerDAO.startServer(this.server)) {
         this.parent?.refresh();
-      }
-      else {
-        if (this.server.running) {
-          vscode.window.showErrorMessage(l10n.t("Failed to restart ARCAD Server {0}: {1}", this.server.name, result.stderr));
-        }
-        else {
-          vscode.window.showErrorMessage(l10n.t("Failed to start ARCAD Server {0}: {1}", this.server.name, result.stderr));
-        }
       }
     }
   }
 
   async stop() {
-    const result = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Stopping ARCAD Server {0}...", this.server.name) }, async progress => {
-      return await Code4i.runCommand(`ENDAFSSVR INSTANCE(${this.server.name})`, this.server.library);
-    });
-    if (result.code === 0) {
+    if (await ServerDAO.stopServer(this.server)) {
       this.parent?.refresh();
     }
-    else {
-      vscode.window.showErrorMessage(l10n.t("Failed to stop ARCAD Server {0}: {1}", this.server.name, result.stderr));
-    }
-  }
-
-  openLogs() {
-    Code4i.open(`${this.server.ifsPath}/logs/server.log`, { readonly: true });
-  }
-
-  openConfiguration() {
-    Code4i.open(`${this.server.ifsPath}/configuration/osgi.cm.ini`);
   }
 
   async clearConfiguration() {
     if (await vscode.window.showWarningMessage(l10n.t("Are you sure you want to clear {0} server configuration area? (server will be stopped)", this.server.name), { modal: true }, l10n.t("Confirm"))) {
-      const configurationDirectory = `${this.server.ifsPath}/configuration`;
-      const tempDirectory = `${Code4i.getConnection().config?.tempDir}/arcadserver_${this.server.name}`;
-      const prepareTempDirectory = await Code4i.runShellCommand(`rm -rf ${tempDirectory} && mkdir -p ${tempDirectory}`);
-      if (prepareTempDirectory.code === 0) {
-        try {
-          await this.stop();
-          const clearCommand = [
-            `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
-            `rm -rf ${configurationDirectory}/*`,
-            `mv ${CONFIG_FILES.map(f => `${tempDirectory}/${f}`).join(" ")} ${configurationDirectory}`
-          ];
-          const clearResult = await Code4i.runShellCommand(clearCommand.join(" && "));
-          if (clearResult.code === 0) {
-            vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} configuration area was successfully cleared. Please restart it.", this.server.name));
-          }
-          else {
-            vscode.window.showErrorMessage(l10n.t("Failed to clear {0} configuration area {0}: {1}", this.server.name, clearResult.stderr));
-          }
-        }
-        finally {
-          await Code4i.runShellCommand(`rm -rf ${tempDirectory}`);
-        }
-      }
-      else {
-        vscode.window.showErrorMessage(l10n.t("Failed to create temporary directory {0}: {1}", tempDirectory, prepareTempDirectory.stderr));
-      }
+      await this.stop();
+      await ServerDAO.clearConfiguration(this.server);
     }
   }
 
@@ -252,18 +184,8 @@ class AFSServerItem extends AFSBrowserItem {
       yes, yesIfs);
 
     if (answer === yes || answer === yesIfs) {
-      const result = await Code4i.runCommand(`DLTAFSSVR INSTANCE(${this.server.name}) DELETE(${answer === yesIfs ? '*YES' : '*NO'})`, this.server.library);
-      if (result.code === 0) {
-        if (this.server.running) {
-          vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} successfully stopped and deleted.", this.server.name));
-        }
-        else {
-          vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} successfully deleted.", this.server.name));
-        }
+      if (await ServerDAO.deleteServer(this.server, answer === yesIfs)) {
         this.parent?.refresh();
-      }
-      else {
-        vscode.window.showErrorMessage(l10n.t("Failed to delete ARCAD Server {0}: {1}", this.server.name, result.stdout));
       }
     }
   }
@@ -287,8 +209,8 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem) => server.show()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem) => server.delete()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (server: AFSServerItem) => server.openLogs()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (server: AFSServerItem) => server.openConfiguration()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (serverItem: AFSServerItem) => ServerDAO.openLogs(serverItem.server)),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (serverItem: AFSServerItem) => ServerDAO.openConfiguration(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.configuration.server", (server: AFSServerItem) => server.clearConfiguration()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser())
   );

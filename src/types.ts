@@ -12,15 +12,27 @@ export type AFSServerWrappers = {
 export type AFSServer = {
   library: string
   name: string
-  jobqName:string
-  jobqLibrary:string
-  ifsPath:string
-  user:string
-  javaProps:string
-  javaHome:string
-  jobName:string
-  jobUser:string
-  jobNumber:string
-  running:boolean
-  jobStatus?:string
+  jobqName: string
+  jobqLibrary: string
+  ifsPath: string
+  user: string
+  javaProps: string
+  javaHome: string
+  jobName: string
+  jobUser: string
+  jobNumber: string
+  running: boolean
+  jobStatus?: string
+  configuration: ServerConfiguration
+};
+
+export type ServerConfiguration = Record<string, Record<string, string>>;
+
+export type ServerUpdate = {
+  user: string
+  jobqName: string
+  jobqLibrary: string
+  ifsPath: string
+  javaProps: string
+  javaHome: string
 };
