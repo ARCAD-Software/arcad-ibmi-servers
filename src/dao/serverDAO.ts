@@ -101,7 +101,7 @@ export namespace ServerDAO {
     }
   }
 
-  export async function updateServer(server: AFSServer, payload: ServerUpdate) {
+  export async function changeServer(server: AFSServer, payload: ServerUpdate) {
     const command = [`${server.library}/CHGAFSSVR`, `INSTANCE(${server.name})`];
     if (payload.user !== server.user) {
       command.push(`USER(${payload.user})`);
