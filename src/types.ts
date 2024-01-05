@@ -36,3 +36,14 @@ export type ServerUpdate = {
   javaProps: string
   javaHome: string
 };
+
+export type InstallationProperties = {
+  ifsPath: string
+  user: string
+  library?:string
+  instance?: string
+  port?: number
+  jobqName?:string
+  jobqLibrary?:string
+  iasp?:string
+};

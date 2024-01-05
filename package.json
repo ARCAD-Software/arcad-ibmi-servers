@@ -102,6 +102,17 @@
         "command": "arcad-afs-for-ibm-i.clear.configuration.server",
         "title": "%clear.configuration%",
         "category": "ARCAD AFS for IBM i"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.install.server",
+        "title": "%install%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(add)"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.update.server",
+        "title": "%update%",
+        "category": "ARCAD AFS for IBM i"
       }
     ],
     "views": {
@@ -162,9 +173,22 @@
         {
           "command": "arcad-afs-for-ibm-i.clear.configuration.server",
           "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.install.server",
+          "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.update.server",
+          "when": "never"
         }
       ],
       "view/title": [
+        {
+          "command": "arcad-afs-for-ibm-i.install.server",
+          "group": "navigation@01",
+          "when": "view == afsServerBrowser"
+        },
         {
           "command": "arcad-afs-for-ibm-i.refresh",
           "group": "navigation@99",
@@ -177,6 +201,11 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "arcad-afs-for-ibm-i.install.server",
+          "when": "view == afsServerBrowser && viewItem == afswrapper",
+          "group": "inline@10"
+        },
         {
           "command": "arcad-afs-for-ibm-i.start.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
@@ -218,9 +247,14 @@
           "group": "03_afsserveractions@01"
         },
         {
-          "command": "arcad-afs-for-ibm-i.delete.server",
+          "command": "arcad-afs-for-ibm-i.update.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
           "group": "04_afsserveractions@01"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.delete.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "10_afsserveractions@01"
         }
       ]
     }

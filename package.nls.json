@@ -11,5 +11,7 @@
   "reload": "Reload available installations",
   "show": "Show server information",
   "start": "Start",
-  "stop": "Stop"
+  "stop": "Stop",
+  "install": "Install new server",
+  "update": "Update"
 }

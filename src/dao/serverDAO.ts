@@ -1,6 +1,6 @@
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
-import { AFSServer, ServerConfiguration, ServerUpdate } from "../types";
+import { AFSServer, InstallationProperties, ServerConfiguration, ServerUpdate } from "../types";
 
 export namespace ServerDAO {
   const CONFIG_FILES = ["org.eclipse.equinox.simpleconfigurator", "config.ini", "osgi.cm.ini"];
@@ -140,29 +140,140 @@ export namespace ServerDAO {
 
   export async function clearConfiguration(server: AFSServer) {
     const configurationDirectory = `${server.ifsPath}/configuration`;
-    const tempDirectory = `${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`;
-    const prepareTempDirectory = await Code4i.runShellCommand(`rm -rf ${tempDirectory} && mkdir -p ${tempDirectory}`);
-    if (prepareTempDirectory.code === 0) {
-      try {
-        const clearCommand = [
-          `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
-          `rm -rf ${configurationDirectory}/*`,
-          `mv ${CONFIG_FILES.map(f => `${tempDirectory}/${f}`).join(" ")} ${configurationDirectory}`
-        ];
-        const clearResult = await Code4i.runShellCommand(clearCommand.join(" && "));
-        if (clearResult.code === 0) {
-          vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} configuration area was successfully cleared. Please restart it.", server.name));
+    return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
+      const clearCommand = [
+        `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
+        `rm -rf ${configurationDirectory}/*`,
+        `mv ${CONFIG_FILES.map(f => `${tempDirectory}/${f}`).join(" ")} ${configurationDirectory}`
+      ];
+      const clearResult = await Code4i.runShellCommand(clearCommand.join(" && "));
+      if (clearResult.code === 0) {
+        vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} configuration area was successfully cleared. Please restart it.", server.name));
+        return true;
+      }
+      else {
+        vscode.window.showErrorMessage(l10n.t("Failed to clear {0} configuration area {0}: {1}", server.name, clearResult.stderr));
+        return false;
+      }
+    });
+  }
+
+  export async function install(installationPackage: vscode.Uri, properties: InstallationProperties) {
+    return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Installing new ARCAD server"), cancellable: false }, async progress => {
+      return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
+        progress.report({ message: l10n.t("uploading installation package"), increment: 33 });
+        const setupFile = `${workDirectory}/setup.jar`;
+        try {
+          await Code4i.getConnection().uploadFiles([{ local: installationPackage, remote: setupFile }]);
+        }
+        catch (error: any) {
+          vscode.window.showErrorMessage(l10n.t("Failed to upload installation package: {0}", error));
+          return false;
+        }
+        const installationProperties = Array.from(toInstallerProperties(properties));
+        progress.report({ message: l10n.t("running installation process"), increment: 33 });
+        const installResult = await Code4i.runShellCommand(`java ${installationProperties.map(([key, value]) => `-D${key}=${value}`).join(" ")} -jar ${setupFile} --unattended && echo "${installationProperties.map(([key, value]) => `${key}=${value}`).join("\n")}" > $(ls ${properties.ifsPath}/*.properties)`, workDirectory);
+        progress.report({ increment: 34 });
+        if (installResult.code === 0) {
+          vscode.window.showInformationMessage(l10n.t("Installation process completed!"));
+          return true;
         }
         else {
-          vscode.window.showErrorMessage(l10n.t("Failed to clear {0} configuration area {0}: {1}", server.name, clearResult.stderr));
+          vscode.window.showErrorMessage(l10n.t("Installation process failed: {0}", installResult.stderr));
+          return false;
         }
+      });
+    });
+  }
+
+  export async function update(installationPackage: vscode.Uri, server: AFSServer) {
+    return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Updating ARCAD server {0}", server.name), cancellable: false }, async progress => {
+      return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
+        progress.report({ message: l10n.t("uploading installation package"), increment: 25 });
+        const setupFile = `${workDirectory}/setup.jar`;
+        try {
+          await Code4i.getConnection().uploadFiles([{ local: installationPackage, remote: setupFile }]);
+        }
+        catch (error: any) {
+          vscode.window.showErrorMessage(l10n.t("Failed to upload installation package: {0}", error));
+          return false;
+        }
+
+        progress.report({ message: l10n.t("running update process"), increment: 25 });
+        let updateResult = await Code4i.runShellCommand(`java -Dinstall.directory=${server.ifsPath} -jar ${setupFile} --unattended`, workDirectory);
+        if (updateResult.code === 0) {
+          progress.report({ message: l10n.t("running database update process"), increment: 25 });
+          let updateResult = await Code4i.runShellCommand(`dbupdate.sh`, `${server.ifsPath}/tools`);
+          if (updateResult.code === 0) {
+            vscode.window.showInformationMessage(l10n.t("Update process completed!"));
+          }
+        }
+
+        if (updateResult.code !== 0) {
+          progress.report({ increment: 50 });
+          vscode.window.showErrorMessage(l10n.t("Update process failed: {0}", updateResult.stderr));
+        }
+
+        return updateResult.code === 0;
+      });
+    });
+  }
+
+  export async function selectInstallationPackage() {
+    return (await vscode.window.showOpenDialog({
+      canSelectMany: false,
+      filters: { 'Installation package': ['jar'] },
+      title: l10n.t("Select an ARCAD Server installation package")
+
+    }))?.[0];
+  }
+
+  async function withTempDirectory(directory: string, process: (directory: string) => Promise<boolean>) {
+    const prepareDirectory = await Code4i.runShellCommand(`rm -rf ${directory} && mkdir -p ${directory}`);
+    if (prepareDirectory.code === 0) {
+      try {
+        return await process(directory);
       }
       finally {
-        await Code4i.runShellCommand(`rm -rf ${tempDirectory}`);
+        await Code4i.runShellCommand(`rm -rf ${directory}`);
       }
     }
     else {
-      vscode.window.showErrorMessage(l10n.t("Failed to create temporary directory {0}: {1}", tempDirectory, prepareTempDirectory.stderr));
+      vscode.window.showErrorMessage(l10n.t("Failed to create temporary directory {0}: {1}", directory, prepareDirectory.stderr));
+      return false;
     }
+  }
+
+  function toInstallerProperties(properties: InstallationProperties) {
+    const props = new Map<string, string>();
+    props.set("install.directory", properties.ifsPath);
+    props.set("afs.user", properties.user);
+    props.set("afs.https.port", "0");
+
+    if (properties.instance) {
+      props.set("afs.starter.instance", properties.instance);
+    }
+
+    if (properties.library) {
+      props.set("afs.starter.library", properties.library);
+    }
+
+    if (properties.iasp) {
+      props.set("afs.starter.iasp", properties.iasp);
+    }
+
+    if (properties.port) {
+      props.set("afs.http.port", String(properties.port));
+    }
+
+    if (properties.jobqName) {
+      props.set("arcad.jobq", properties.jobqName);
+    }
+
+    if (properties.jobqLibrary) {
+      props.set("arcad.jobq.library", properties.jobqLibrary);
+    }
+
+    return props;
   }
 }
