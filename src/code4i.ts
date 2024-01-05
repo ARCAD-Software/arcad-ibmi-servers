@@ -23,8 +23,8 @@ export namespace Code4i {
     });
   }
 
-  export async function runShellCommand(command: string) {
-    return codeForIBMi.instance.getConnection().sendCommand({ command });
+  export async function runShellCommand(command: string, directory?: string) {
+    return codeForIBMi.instance.getConnection().sendCommand({ command, directory });
   }
 
   export async function runSQL(statement: string) {
@@ -41,6 +41,10 @@ export namespace Code4i {
 
   export function customUI() {
     return codeForIBMi.customUI();
+  }
+
+  export function makeId() {
+    return codeForIBMi.tools.makeid();
   }
 
   export function open(path: string, options?: QsysFsOptions) {

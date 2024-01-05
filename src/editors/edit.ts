@@ -24,7 +24,7 @@ export async function openEditServerEditor(server: AFSServer, afterSave: (restar
 
   if (page && page.data) {
     page.panel.dispose();
-    if (await ServerDAO.updateServer(server, page.data)) {
+    if (await ServerDAO.changeServer(server, page.data)) {
       afterSave(page.data.buttons === "saveRestart");
     }
   }

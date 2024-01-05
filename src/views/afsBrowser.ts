@@ -2,6 +2,7 @@ import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { ServerDAO } from "../dao/serverDAO";
 import { openEditServerEditor } from "../editors/edit";
+import { openInstallEditor } from "../editors/install";
 import { openShowServerEditor } from "../editors/show";
 import { AFSServer, AFSWrapperLocation } from "../types";
 
@@ -87,6 +88,7 @@ class AFSBrowserItem extends vscode.TreeItem {
 class AFSWrapperItem extends AFSBrowserItem {
   constructor(readonly location: AFSWrapperLocation) {
     super(location.library, { icon: { name: "server" }, state: vscode.TreeItemCollapsibleState.Collapsed });
+    this.contextValue = "afswrapper";
     this.description = location.version;
   }
 
@@ -104,7 +106,7 @@ class AFSServerItem extends AFSBrowserItem {
     });
     this.contextValue = `afsserver_${server.running ? "run" : ""}`;
     this.description = server.running ? l10n.t("Running") : l10n.t("Stopped");
-    this.tooltip = new vscode.MarkdownString(`- ${l10n.t("IFS path")}: ${server.ifsPath}`, false);
+    this.tooltip = new vscode.MarkdownString(`- ${l10n.t("IFS path")}: ${server.ifsPath}\n`, false);
     if (server.configuration.rest?.port) {
       this.tooltip.appendMarkdown(`- ${l10n.t("HTTP port")}: ${server.configuration.rest?.port || "-"}\n`);
     }
@@ -112,7 +114,7 @@ class AFSServerItem extends AFSBrowserItem {
       this.tooltip.appendMarkdown(`- ${l10n.t("HTTPs port")}: ${server.configuration.rest?.portssl || "-"}\n`);
     }
     if (server.running) {
-      this.tooltip.appendMarkdown(`- ${l10n.t("Job")}: ${server.jobNumber}/${server.jobUser}/${server.jobName}\n`);
+      this.tooltip.appendMarkdown(`- ${l10n.t("Job")}: ${server.jobNumber}/${server.jobUser}/${server.jobName}`);
     }
 
     this.command = {
@@ -141,7 +143,7 @@ class AFSServerItem extends AFSBrowserItem {
     }
 
     if (!debug || debugPort) {
-      if (await ServerDAO.startServer(this.server)) {
+      if (await ServerDAO.startServer(this.server, debugPort)) {
         this.parent?.refresh();
       }
     }
@@ -191,12 +193,34 @@ class AFSServerItem extends AFSBrowserItem {
   }
 }
 
+class AFSServerBrowserDragAndDropController implements vscode.TreeDragAndDropController<AFSBrowserItem> {
+  readonly dropMimeTypes = ["text/uri-list"];
+  readonly dragMimeTypes = [];
+
+  async handleDrop(target: AFSBrowserItem | undefined, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken) {
+    const explorerItems = dataTransfer.get("text/uri-list");
+    if (explorerItems && explorerItems.value) {
+      const [droppedFile] = (await explorerItems.asString()).split("\r\n").map(uri => vscode.Uri.parse(uri));
+      const fileStat = await vscode.workspace.fs.stat(droppedFile);
+      if (fileStat.type === vscode.FileType.File && droppedFile.path.toLowerCase().endsWith(".jar")) {
+        if (!target || target instanceof AFSWrapperItem) {
+          install(target, droppedFile);
+        }
+        else if (target instanceof AFSServerItem && await vscode.window.showInformationMessage(l10n.t(`Do you want to update ARCAD server {0} using the package {1}?`, target.server.name, droppedFile.path.substring(droppedFile.path.lastIndexOf('/') + 1)), { modal: true }, l10n.t("Update"))) {
+          update(target, droppedFile);
+        }
+      }
+    }
+  }
+}
+
 export function initializeAFSBrowser(context: vscode.ExtensionContext) {
   const afsBrowser = new AFSServerBrowser();
   const afsBrowserTreeViewer = vscode.window.createTreeView(
     `afsServerBrowser`, {
     treeDataProvider: afsBrowser,
-    showCollapseAll: true
+    showCollapseAll: true,
+    dragAndDropController: new AFSServerBrowserDragAndDropController()
   });
 
   context.subscriptions.push(
@@ -212,7 +236,9 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (serverItem: AFSServerItem) => ServerDAO.openLogs(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (serverItem: AFSServerItem) => ServerDAO.openConfiguration(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.configuration.server", (server: AFSServerItem) => server.clearConfiguration()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser())
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.server", install),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.update.server", update)
   );
 
   Code4i.onEvent("connected", () => afsBrowser.reload());
@@ -229,5 +255,16 @@ function getServerIcon(server: AFSServer): Icon {
   }
   else {
     return { name: "gear" };
+  }
+}
+
+async function install(wrapper?: AFSWrapperItem, installationPackage?: vscode.Uri) {
+  await openInstallEditor(wrapper?.location.library, installationPackage, () => wrapper ? wrapper.refresh() : vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload"));
+}
+
+async function update(serverItem: AFSServerItem, installationPackage?: vscode.Uri) {
+  installationPackage = installationPackage || await ServerDAO.selectInstallationPackage();
+  if (installationPackage && installationPackage.path.toLowerCase().endsWith(".jar") && await ServerDAO.update(installationPackage, serverItem.server)) {
+    serverItem.refresh();
   }
 }
