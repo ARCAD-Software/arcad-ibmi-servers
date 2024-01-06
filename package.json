@@ -104,6 +104,11 @@
         "category": "ARCAD AFS for IBM i"
       },
       {
+        "command": "arcad-afs-for-ibm-i.clear.logs.server",
+        "title": "%clear.logs%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
         "command": "arcad-afs-for-ibm-i.install.server",
         "title": "%install%",
         "category": "ARCAD AFS for IBM i",
@@ -175,6 +180,10 @@
           "when": "never"
         },
         {
+          "command": "arcad-afs-for-ibm-i.clear.logs.server",
+          "when": "never"
+        },
+        {
           "command": "arcad-afs-for-ibm-i.install.server",
           "when": "never"
         },
@@ -242,9 +251,14 @@
           "group": "02_afsserveractions@03"
         },
         {
-          "command": "arcad-afs-for-ibm-i.clear.configuration.server",
+          "command": "arcad-afs-for-ibm-i.clear.logs.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
           "group": "03_afsserveractions@01"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.clear.configuration.server",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "group": "03_afsserveractions@02"
         },
         {
           "command": "arcad-afs-for-ibm-i.update.server",

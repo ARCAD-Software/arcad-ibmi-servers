@@ -156,9 +156,16 @@ class AFSServerItem extends AFSBrowserItem {
   }
 
   async clearConfiguration() {
-    if (await vscode.window.showWarningMessage(l10n.t("Are you sure you want to clear {0} server configuration area? (server will be stopped)", this.server.name), { modal: true }, l10n.t("Confirm"))) {
+    if (await vscode.window.showWarningMessage(l10n.t("Are you sure you want to clear {0} server configuration area? (server has to be stopped)", this.server.name), { modal: true }, l10n.t("Confirm"))) {
       await this.stop();
       await ServerDAO.clearConfiguration(this.server);
+    }
+  }
+
+  async clearLogs() {
+    if (await vscode.window.showWarningMessage(l10n.t("Are you sure you want to clear {0} server logs? (server has to be stopped)", this.server.name), { modal: true }, l10n.t("Confirm"))) {
+      await this.stop();
+      await ServerDAO.clearLogs(this.server);
     }
   }
 
@@ -236,6 +243,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (serverItem: AFSServerItem) => ServerDAO.openLogs(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (serverItem: AFSServerItem) => ServerDAO.openConfiguration(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.configuration.server", (server: AFSServerItem) => server.clearConfiguration()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.logs.server", (server: AFSServerItem) => server.clearLogs()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem) => server.addToIFSBrowser()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.server", install),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.update.server", update)

@@ -140,23 +140,39 @@ export namespace ServerDAO {
   }
 
   export async function clearConfiguration(server: AFSServer) {
-    const configurationDirectory = `${server.ifsPath}/configuration`;
-    return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
-      const clearCommand = [
-        `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
-        `rm -rf ${configurationDirectory}/*`,
-        `mv ${CONFIG_FILES.map(f => `${tempDirectory}/${f}`).join(" ")} ${configurationDirectory}`
-      ];
-      const clearResult = await Code4i.runShellCommand(clearCommand.join(" && "));
+    return await vscode.window.withProgress({title: l10n.t("Clearing {0} configuration area...", server.name), location: vscode.ProgressLocation.Notification}, async () => {
+      const configurationDirectory = `${server.ifsPath}/configuration`;
+      return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
+        const clearCommand = [
+          `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
+          `rm -rf ${configurationDirectory}/*`,
+          `mv ${CONFIG_FILES.map(f => `${tempDirectory}/${f}`).join(" ")} ${configurationDirectory}`
+        ];
+        const clearResult = await Code4i.runShellCommand(clearCommand.join(" && "));
+        if (clearResult.code === 0) {
+          vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} configuration area was successfully cleared.", server.name));
+          return true;
+        }
+        else {
+          vscode.window.showErrorMessage(l10n.t("Failed to clear {0} configuration area {0}: {1}", server.name, clearResult.stderr));
+          return false;
+        }
+      });
+    });    
+  }
+
+  export async function clearLogs(server: AFSServer) {
+    return await vscode.window.withProgress({title: l10n.t("Clearing {0} logs...", server.name), location: vscode.ProgressLocation.Notification}, async () => {
+      const clearResult = await Code4i.runShellCommand(`rm -rf ${server.ifsPath}/logs/*`);
       if (clearResult.code === 0) {
-        vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} configuration area was successfully cleared. Please restart it.", server.name));
+        vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} logs were successfully cleared.", server.name));
         return true;
       }
       else {
-        vscode.window.showErrorMessage(l10n.t("Failed to clear {0} configuration area {0}: {1}", server.name, clearResult.stderr));
+        vscode.window.showErrorMessage(l10n.t("Failed to clear {0} logs: {1}", server.name, clearResult.stderr));
         return false;
       }
-    });
+    });    
   }
 
   export async function install(installationPackage: vscode.Uri, properties: InstallationProperties) {
