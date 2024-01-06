@@ -6,6 +6,7 @@
   "debug": "Start (debug)",
   "delete": "Delete server",
   "edit": "Edit server",
+  "install": "Install new server",
   "open.configuration": "Open configuration",
   "open.logs": "Open logs",
   "refresh": "Refresh",
@@ -13,6 +14,5 @@
   "show": "Show server information",
   "start": "Start",
   "stop": "Stop",
-  "install": "Install new server",
   "update": "Update"
 }
