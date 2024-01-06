@@ -1,3 +1,4 @@
+import axios, { AxiosHeaders } from "axios";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { AFSServer, InstallationProperties, ServerConfiguration, ServerUpdate } from "../types";
@@ -275,5 +276,31 @@ export namespace ServerDAO {
     }
 
     return props;
+  }
+
+  export async function get<T>(server: AFSServer, endpoint: string, accept?: string): Promise<T | undefined> {
+    const timeout = 2000;
+    const host = Code4i.getConnection().currentHost;
+    const port = Number(server.configuration.rest?.port);
+    const portSSL = Number(server.configuration.rest?.portssl);
+    const headers = new AxiosHeaders().setAccept(accept || 'application/json');
+
+    const requests = [];
+    if (portSSL) {
+      requests.push(axios.get<T>(`https://${host}:${portSSL}${endpoint}`, { headers, timeout }));
+    }
+
+    if (port) {
+      requests.push(axios.get<T>(`http://${host}:${port}${endpoint}`, { headers, timeout }));
+    }
+
+    if (requests.length) {
+      try {
+        return (await Promise.race(requests)).data;
+      }
+      catch (error) {
+        console.log(error);
+      }
+    }
   }
 }

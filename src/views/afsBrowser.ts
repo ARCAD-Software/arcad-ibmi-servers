@@ -111,7 +111,7 @@ class AFSServerItem extends AFSBrowserItem {
       this.tooltip.appendMarkdown(`- ${l10n.t("HTTP port")}: ${server.configuration.rest?.port || "-"}\n`);
     }
     if (server.configuration.rest?.portssl) {
-      this.tooltip.appendMarkdown(`- ${l10n.t("HTTPs port")}: ${server.configuration.rest?.portssl || "-"}\n`);
+      this.tooltip.appendMarkdown(`- ${l10n.t("HTTPS port")}: ${server.configuration.rest?.portssl || "-"}\n`);
     }
     if (server.running) {
       this.tooltip.appendMarkdown(`- ${l10n.t("Job")}: ${server.jobNumber}/${server.jobUser}/${server.jobName}`);
