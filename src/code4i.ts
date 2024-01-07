@@ -1,4 +1,4 @@
-import { CodeForIBMi, IBMiEvent, QsysFsOptions } from "@halcyontech/vscode-ibmi-types";
+import { CodeForIBMi, IBMiEvent, OpenEditableOptions } from "@halcyontech/vscode-ibmi-types";
 import vscode from "vscode";
 
 let codeForIBMi: CodeForIBMi;
@@ -47,7 +47,7 @@ export namespace Code4i {
     return codeForIBMi.tools.makeid();
   }
 
-  export function open(path: string, options?: QsysFsOptions) {
-    vscode.commands.executeCommand("code-for-ibmi.openEditable", path, 0, options);
+  export function open(path: string, options?: OpenEditableOptions) {
+    vscode.commands.executeCommand("code-for-ibmi.openEditable", path, options);
   }
 }
