@@ -282,7 +282,7 @@
     "nls": "npx @vscode/l10n-dev export --outDir ./l10n ./src"
   },
   "devDependencies": {
-    "@halcyontech/vscode-ibmi-types": "^2.6",
+    "@halcyontech/vscode-ibmi-types": "^2.6.3",
     "@types/node": "18.x",
     "@types/vscode": "^1.84.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
