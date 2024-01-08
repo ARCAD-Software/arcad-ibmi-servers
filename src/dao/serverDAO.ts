@@ -136,11 +136,11 @@ export namespace ServerDAO {
   }
 
   export async function openConfiguration(server: AFSServer) {
-    Code4i.open(`${server.ifsPath}/configuration/osgi.cm.ini`);
+    Code4i.open(`${server.ifsPath}/configuration/osgi.cm.ini`, { readonly: server.running });
   }
 
   export async function clearConfiguration(server: AFSServer) {
-    return await vscode.window.withProgress({title: l10n.t("Clearing {0} configuration area...", server.name), location: vscode.ProgressLocation.Notification}, async () => {
+    return await vscode.window.withProgress({ title: l10n.t("Clearing {0} configuration area...", server.name), location: vscode.ProgressLocation.Notification }, async () => {
       const configurationDirectory = `${server.ifsPath}/configuration`;
       return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
         const clearCommand = [
@@ -158,11 +158,11 @@ export namespace ServerDAO {
           return false;
         }
       });
-    });    
+    });
   }
 
   export async function clearLogs(server: AFSServer) {
-    return await vscode.window.withProgress({title: l10n.t("Clearing {0} logs...", server.name), location: vscode.ProgressLocation.Notification}, async () => {
+    return await vscode.window.withProgress({ title: l10n.t("Clearing {0} logs...", server.name), location: vscode.ProgressLocation.Notification }, async () => {
       const clearResult = await Code4i.runShellCommand(`rm -rf ${server.ifsPath}/logs/*`);
       if (clearResult.code === 0) {
         vscode.window.showInformationMessage(l10n.t("ARCAD Server {0} logs were successfully cleared.", server.name));
@@ -172,7 +172,7 @@ export namespace ServerDAO {
         vscode.window.showErrorMessage(l10n.t("Failed to clear {0} logs: {1}", server.name, clearResult.stderr));
         return false;
       }
-    });    
+    });
   }
 
   export async function install(installationPackage: vscode.Uri, properties: InstallationProperties) {

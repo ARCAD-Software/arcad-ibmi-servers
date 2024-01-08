@@ -104,7 +104,7 @@ class AFSServerItem extends AFSBrowserItem {
       icon: getServerIcon(server),
       state: vscode.TreeItemCollapsibleState.None
     });
-    this.contextValue = `afsserver_${server.running ? "run" : ""}`;
+    this.contextValue = `afsserver${server.running ? "_run" : ""}`;
     this.description = server.running ? l10n.t("Running") : l10n.t("Stopped");
     this.tooltip = new vscode.MarkdownString(`- ${l10n.t("IFS path")}: ${server.ifsPath}\n`, false);
     if (server.configuration.rest?.port) {
