@@ -252,12 +252,12 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.clear.logs.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "when": "view == afsServerBrowser && viewItem == afsserver",
           "group": "03_afsserveractions@01"
         },
         {
           "command": "arcad-afs-for-ibm-i.clear.configuration.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "when": "view == afsServerBrowser && viewItem == afsserver",
           "group": "03_afsserveractions@02"
         },
         {
