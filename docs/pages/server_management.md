@@ -66,10 +66,12 @@ This action will open the `<server directory>/logs/server.log` read-only.
 This will run `Code for IBM i` action to add a new IFS shortcut in the `IFS Browser`, pre-filling the prompt with the server's installation path.<br/>![Add IFS shortcut](../assets/add_ifs_shortcut.png)
 
 ### Clear logs
-Clearing the logs will remove all the files from the `<server directory>/logs` directory, provided you have enough authority to do so.
+Clearing the logs will remove all the files from the `<server directory>/logs` directory, provided you have enough authority to do so. This can only be done when the server is stopped.
 
 ### Clear configuration cache
 Clearing the configuration cache will remove everything from the `<server directory>/configuration` folder, except the following items:
 - org.eclipse.equinox.simpleconfigurator
 - osgi.cm.ini
 - config.ini
+
+This can only be done when the server is stopped.
