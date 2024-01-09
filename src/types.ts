@@ -26,7 +26,7 @@ export type AFSServer = {
   configuration: ServerConfiguration
 };
 
-export type ServerConfiguration = Record<string, Record<string, string>>;
+export type ServerConfiguration = { error?: "noconfig" | "nofolder" } & Record<string, Record<string, string>>;
 
 export type ServerUpdate = {
   user: string
@@ -40,10 +40,10 @@ export type ServerUpdate = {
 export type InstallationProperties = {
   ifsPath: string
   user: string
-  library?:string
+  library?: string
   instance?: string
   port?: number
-  jobqName?:string
-  jobqLibrary?:string
-  iasp?:string
+  jobqName?: string
+  jobqLibrary?: string
+  iasp?: string
 };

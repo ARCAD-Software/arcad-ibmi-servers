@@ -3,7 +3,7 @@
   "publisher": "arcadsoftware",
   "displayName": "ARCAD-IBM i Servers Manager",
   "description": "This extension lets you manage your ARCAD Servers installed on IBM i. Powered by Code for IBM i.",
-  "version": "0.0.7-dev.0",
+  "version": "0.0.7-dev.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"

@@ -105,7 +105,24 @@ class AFSServerItem extends AFSBrowserItem {
       state: vscode.TreeItemCollapsibleState.None
     });
     this.contextValue = `afsserver${server.running ? "_run" : ""}`;
-    this.description = server.running ? l10n.t("Running") : l10n.t("Stopped");
+
+    if (server.configuration.error) {
+      switch (server.configuration.error) {
+        case "noconfig":
+          this.description = l10n.t("Configuration file not found");
+          break;
+        case "nofolder":
+          this.description = l10n.t("Installation folder not found");
+          break;
+      }
+    }
+    else if (!server.configuration.rest) {
+      this.description = l10n.t("Configuration file is incomplete");
+    }
+    else {
+      this.description = server.running ? l10n.t("Running") : l10n.t("Stopped");
+    }
+
     this.tooltip = new vscode.MarkdownString(`- ${l10n.t("IFS path")}: ${server.ifsPath}\n`, false);
     if (server.configuration.rest?.port) {
       this.tooltip.appendMarkdown(`- ${l10n.t("HTTP port")}: ${server.configuration.rest?.port || "-"}\n`);
@@ -262,7 +279,12 @@ function getServerIcon(server: AFSServer): Icon {
     }
   }
   else {
-    return { name: "gear" };
+    if (server.configuration.error) {
+      return { name: "warning", color: "notificationsWarningIcon.foreground" };
+    }
+    else {
+      return { name: "gear" };
+    }
   }
 }
 
