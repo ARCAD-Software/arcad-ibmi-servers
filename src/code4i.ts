@@ -1,5 +1,5 @@
 import { CodeForIBMi, IBMiEvent, OpenEditableOptions } from "@halcyontech/vscode-ibmi-types";
-import vscode from "vscode";
+import vscode, { l10n } from "vscode";
 
 let codeForIBMi: CodeForIBMi;
 export namespace Code4i {
@@ -8,6 +8,7 @@ export namespace Code4i {
     if (codeForIBMiExtension) {
       codeForIBMi = codeForIBMiExtension.isActive ? codeForIBMiExtension.exports : await codeForIBMiExtension.activate();
       console.log(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' is now active!"));
+      codeForIBMi.instance.onEvent("connected", checkJava);
     }
     else {
       throw new Error(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' requires the 'halcyontechltd.code-for-ibmi' extension to be active!"));
@@ -49,5 +50,43 @@ export namespace Code4i {
 
   export function open(path: string, options?: OpenEditableOptions) {
     vscode.commands.executeCommand("code-for-ibmi.openEditable", path, options);
+  }
+
+  async function checkJava() {
+    const [result] = await runSQL(`With JAVA_PTF_GROUP as (
+      SELECT PTF_GROUP_TARGET_RELEASE OS,
+      Case PTF_GROUP_TARGET_RELEASE
+        When 'V7R4M0' Then 'SF99665'
+        When 'V7R3M0' Then 'SF99725'
+        When 'V7R2M0' Then 'SF99716'
+        When 'V7R1M0' Then 'SF99572' End PTF_GROUP,
+      Case PTF_GROUP_TARGET_RELEASE
+        When 'V7R4M0' Then 10
+        When 'V7R3M0' Then 21
+        When 'V7R2M0' Then 31
+        When 'V7R1M0' Then 44 End PTF_LEVEL  
+    FROM QSYS2.GROUP_PTF_INFO
+    WHERE PTF_GROUP_DESCRIPTION = 'TECHNOLOGY REFRESH'
+    AND PTF_GROUP_STATUS = 'INSTALLED'
+    LIMIT 1)
+    Select Max(OS) OS,
+    PTF_GROUP_NAME PTF,
+    Max(PTF_GROUP_LEVEL) CURRENT,
+    Max(PTF_LEVEL) REQUIRED
+    From  QSYS2.GROUP_PTF_INFO
+    Inner Join JAVA_PTF_GROUP On PTF_GROUP = PTF_GROUP_NAME
+    Group by PTF_GROUP_NAME;
+    `);
+
+    const current = Number(result.CURRENT);
+    const required = Number(result.REQUIRED);
+    if (current < required) {
+      vscode.window.showWarningMessage(l10n.t("Your {0} system's PTF {1} is at level {2} which doesn't allow to run ARCAD servers properly. Please consider upgrading to level {3} or above.", String(result.OS), String(result.PTF), current, required), { modal: true }, l10n.t("Open related issue"))
+        .then(open => {
+          if (open) {
+            vscode.commands.executeCommand("vscode.open", "https://www.ibm.com/support/pages/change-oracle-jce-code-signing-ca-ibm-jdk-80-sr6-fp25-71-sr4-fp75-70-sr10-fp75");
+          }
+        });
+    }
   }
 }
