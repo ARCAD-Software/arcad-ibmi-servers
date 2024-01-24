@@ -1,6 +1,6 @@
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
-import { ServerDAO } from "../dao/serverDAO";
+import { AFSServerDAO } from "../dao/afsDAO";
 import { InstallationProperties } from "../types";
 
 type InstallPage = InstallationProperties & {
@@ -8,7 +8,7 @@ type InstallPage = InstallationProperties & {
 };
 
 export async function openInstallEditor(location?: string, installationPackage?: vscode.Uri, afterInstall?: Function) {
-  installationPackage = installationPackage || await ServerDAO.selectInstallationPackage();
+  installationPackage = installationPackage || await AFSServerDAO.selectInstallationPackage();
   if (installationPackage && installationPackage.path.toLowerCase().endsWith(".jar")) {
     const page = await Code4i.customUI()
       .addInput("ifsPath", l10n.t("IFS folder"), l10n.t("The server IFS installation folder path."), { minlength: 1, maxlength: 5000, regexTest: "^\\/.+$" })
@@ -27,7 +27,7 @@ export async function openInstallEditor(location?: string, installationPackage?:
     if (page && page.data) {
       page.panel.dispose();
 
-      if (await ServerDAO.install(installationPackage, page.data)) {
+      if (await AFSServerDAO.install(installationPackage, page.data)) {
         afterInstall?.();
       }
     }

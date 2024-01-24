@@ -1,7 +1,8 @@
 export type AFSWrapperLocation = {
   library: string
-  version: string
+  dataArea: string
   iasp?: number
+  type : 'AFS' | 'Jetty'
 };
 
 export type AFSServerWrappers = {
@@ -24,6 +25,15 @@ export type AFSServer = {
   running: boolean
   jobStatus?: string
   configuration: ServerConfiguration
+};
+
+export type JettyServer = {
+  library: string
+  running: boolean
+  jobName?: string
+  jobUser?: string
+  jobNumber?: string
+  jobStatus?: string
 };
 
 export type ServerConfiguration = { error?: "noconfig" | "nofolder" } & Record<string, Record<string, string>>;

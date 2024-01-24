@@ -217,7 +217,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.start.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "when": "view == afsServerBrowser && viewItem =~ /^(afsserver|jettyjob).*$/",
           "group": "inline@10"
         },
         {
@@ -227,7 +227,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.stop.server",
-          "when": "view == afsServerBrowser && viewItem == afsserver_run",
+          "when": "view == afsServerBrowser && viewItem =~ /^(afsserver|jettyjob)_run$/",
           "group": "inline@20"
         },
         {
@@ -237,7 +237,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*|jettywrapper$/",
           "group": "02_afsserveractions@01"
         },
         {

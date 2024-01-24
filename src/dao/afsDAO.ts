@@ -3,7 +3,7 @@ import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { AFSServer, InstallationProperties, ServerConfiguration, ServerUpdate } from "../types";
 
-export namespace ServerDAO {
+export namespace AFSServerDAO {
   const CONFIG_FILES = ["org.eclipse.equinox.simpleconfigurator", "config.ini", "osgi.cm.ini"];
 
   export async function listServers(library: string) {

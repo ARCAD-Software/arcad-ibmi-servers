@@ -1,7 +1,7 @@
 
 import { l10n } from "vscode";
 import { Code4i } from "../code4i";
-import { ServerDAO } from "../dao/serverDAO";
+import { AFSServerDAO } from "../dao/afsDAO";
 import { AFSServer, ServerUpdate } from "../types";
 
 type AFSServerPage = ServerUpdate & {
@@ -24,7 +24,7 @@ export async function openEditServerEditor(server: AFSServer, afterSave: (restar
 
   if (page && page.data) {
     page.panel.dispose();
-    if (await ServerDAO.changeServer(server, page.data)) {
+    if (await AFSServerDAO.changeServer(server, page.data)) {
       afterSave(page.data.buttons === "saveRestart");
     }
   }

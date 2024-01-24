@@ -36,6 +36,10 @@ export namespace Code4i {
     return codeForIBMi.instance.getConnection();
   }
 
+  export async function checkObject(library:string, name:string, type:string) {
+    return codeForIBMi.instance.getContent().checkObject({library, name, type});
+  }
+
   export function onEvent(event: IBMiEvent, todo: Function) {
     codeForIBMi.instance.onEvent(event, todo);
   }

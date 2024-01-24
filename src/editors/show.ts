@@ -1,7 +1,7 @@
 import { ComplexTab } from "@halcyontech/vscode-ibmi-types/api/CustomUI";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
-import { ServerDAO } from "../dao/serverDAO";
+import { AFSServerDAO } from "../dao/afsDAO";
 import { AFSServer } from "../types";
 
 export async function openShowServerEditor(server: AFSServer) {
@@ -18,7 +18,7 @@ export async function openShowServerEditor(server: AFSServer) {
 
   if (server.running) {
     await vscode.window.withProgress({ title: l10n.t("Gathering {0} runtime information...", server.name), location: vscode.ProgressLocation.Notification }, async () => {
-      const about = (await ServerDAO.get<any>(server, "/about"))?.about;
+      const about = (await AFSServerDAO.get<any>(server, "/about"))?.about;
       if (about) {
         const toString = (object: any, tab?: boolean): string =>
           Object.entries(object).map(([key, value]) => {
