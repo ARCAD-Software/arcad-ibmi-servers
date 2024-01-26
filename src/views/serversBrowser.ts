@@ -1,11 +1,14 @@
+import { basename } from "path";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { AFSServerDAO } from "../dao/afsDAO";
 import { JettyDAO } from "../dao/jettyDAO";
-import { openEditServerEditor } from "../editors/edit";
-import { openInstallEditor } from "../editors/install";
-import { openShowServerEditor } from "../editors/show";
-import { AFSServer, JettyServer, AFSWrapperLocation as ServerLocation } from "../types";
+import { openEditAFSServerEditor } from "../editors/afs/edit";
+import { openInstallAFSEditor } from "../editors/afs/install";
+import { openShowAFSServerEditor } from "../editors/afs/show";
+import { openInstallJettyEditor } from "../editors/jetty/install";
+import { openShowJettyServerEditor } from "../editors/jetty/show";
+import { AFSServer, JettyServer, ServerLocation } from "../types";
 
 class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<ServerBrowserItem | undefined | null | void>;
@@ -92,12 +95,34 @@ class JettyWrapperItem extends ServerBrowserItem {
 
   async getChildren() {
     return [
-      new JettyJobItem(this, await JettyDAO.loadJettyServer(this.location.library))
+      new JettyJobItem(this, await JettyDAO.loadJettyServer(this.location))
     ];
   }
 
   addToIFSBrowser() {
     vscode.commands.executeCommand("code-for-ibmi.addIFSShortcut", { path: this.location.dataArea });
+  }
+
+  async clearLogs() {
+    if (await vscode.window.showWarningMessage(l10n.t("Are you sure you want to clear {0} Jetty logs? (server has to be stopped)", this.location.library), { modal: true }, l10n.t("Confirm"))) {
+      return await vscode.window.withProgress({ title: l10n.t("Clearing Jetty {0} logs", this.location.library), location: vscode.ProgressLocation.Notification }, async (task) => {
+        task.report({ message: l10n.t("stopping"), increment: 33 });
+        const stopResult = await JettyDAO.stopServer(this.location);
+        if (stopResult.code === 0) {
+          task.report({ message: l10n.t("clearing logs"), increment: 33 });
+          const clearResult = await JettyDAO.clearLogs(this.location);
+          if (clearResult.code === 0) {
+            this.refresh();
+          }
+          else {
+            vscode.window.showErrorMessage(l10n.t("Failed to clear Jetty server {0} logs: {1}", this.location.library, clearResult.stderr));
+          }
+        }
+        else {
+          vscode.window.showErrorMessage(l10n.t("Failed to stop Jetty Server {0}: {1}", this.location.library, stopResult.stderr));
+        }
+      });
+    }
   }
 }
 
@@ -106,17 +131,71 @@ class JettyJobItem extends ServerBrowserItem {
     super(server.running ? `${server.jobNumber}/${server.jobUser}/${server.jobName}` : l10n.t("No job running"), { parent, icon: getJettyServerIcon(server) });
     this.contextValue = `jettyjob${server.running ? "_run" : ""}`;
     this.description = server.jobStatus;
+    this.tooltip = new vscode.MarkdownString(``, false);
+
+    if (server.configuration.httpPort) {
+      this.tooltip.appendMarkdown(`- ${l10n.t("HTTP")}: ${server.configuration.httpPort}`);
+    }
+
+    if (server.configuration.httpsPort) {
+      this.tooltip.appendMarkdown(`${this.tooltip.value.length ? '\n' : ''}- ${l10n.t("HTTPS")}: ${server.configuration.httpPort}`);
+    }
+
+    this.command = {
+      title: "",
+      command: "arcad-afs-for-ibm-i.show.server",
+      arguments: [this]
+    };
   }
 
   async start() {
-    if (await JettyDAO.startServer(this.server)) {
-      this.parent?.refresh();
-    }
+    const result = await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: this.server.running ? l10n.t("Restarting Jetty Server {0}...", this.server.library) : l10n.t("Starting Jetty Server {0}...", this.server.library)
+    },
+      async () => {
+        const result = await JettyDAO.startServer(this.server);
+        if (result.code === 0) {
+          this.parent?.refresh();
+        }
+        else {
+          vscode.window.showErrorMessage(this.server.running ? l10n.t("Failed to restart Jetty Server {0}: {1}", this.server.library, result.stderr) :
+            l10n.t("Failed to start Jetty Server {0}: {1}", this.server.library, result.stderr));
+        }
+      });
   }
 
   async stop() {
-    if (await JettyDAO.stopServer(this.server)) {
+    const result = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Stopping Jetty Server {0}...", this.server.library) },
+      async () => await JettyDAO.stopServer(this.server));
+    if (result.code === 0) {
       this.parent?.refresh();
+    }
+    else {
+      vscode.window.showErrorMessage(l10n.t("Failed to stop Jetty Server {0}: {1}", this.server.library, result.stderr));
+    }
+  }
+
+  show() {
+    openShowJettyServerEditor(this.server);
+  }
+
+  async openBrowser() {
+    const applications = await JettyDAO.listApplications(this.server);
+    const selected = (await vscode.window.showQuickPick([
+      { label: '/', description: 'Root' },
+      ...applications.map(app => ({ label: app }))
+    ],
+      { title: l10n.t("Select an application") }))?.label;
+
+    if (selected) {
+      const scheme = `http${this.server.configuration.httpsPort ? 's' : ''}`;
+      const port = this.server.configuration.httpsPort || this.server.configuration.httpPort;
+      vscode.commands.executeCommand("vscode.open", vscode.Uri.from({
+        scheme,
+        authority: `${Code4i.getConnection().currentHost}:${port}`,
+        path: selected.endsWith('/') ? selected : `${selected}/`
+      }));
     }
   }
 }
@@ -227,11 +306,11 @@ class AFSServerItem extends ServerBrowserItem {
   }
 
   show() {
-    openShowServerEditor(this.server);
+    openShowAFSServerEditor(this.server);
   }
 
   edit() {
-    openEditServerEditor(this.server, restart => {
+    openEditAFSServerEditor(this.server, restart => {
       this.parent?.refresh();
       if (restart) {
         this.start();
@@ -260,15 +339,21 @@ class ServerBrowserDragAndDropController implements vscode.TreeDragAndDropContro
   async handleDrop(target: ServerBrowserItem | undefined, dataTransfer: vscode.DataTransfer, token: vscode.CancellationToken) {
     const explorerItems = dataTransfer.get("text/uri-list");
     if (explorerItems && explorerItems.value) {
-      const [droppedFile] = (await explorerItems.asString()).split("\r\n").map(uri => vscode.Uri.parse(uri));
-      const fileStat = await vscode.workspace.fs.stat(droppedFile);
-      if (fileStat.type === vscode.FileType.File && droppedFile.path.toLowerCase().endsWith(".jar")) {
-        if (!target || target instanceof AFSWrapperItem) {
-          install(target, droppedFile);
+      const droppedFiles = (await explorerItems.asString()).split("\r\n").map(uri => vscode.Uri.parse(uri));
+      if (target instanceof AFSWrapperItem || target instanceof AFSServerItem) {
+        const droppedFile = droppedFiles[0];
+        const fileStat = await vscode.workspace.fs.stat(droppedFile);
+        if (fileStat.type === vscode.FileType.File && droppedFile.path.toLowerCase().endsWith(".jar")) {
+          if (!target || target instanceof AFSWrapperItem) {
+            installServer(target, droppedFile);
+          }
+          else if (target instanceof AFSServerItem && await vscode.window.showInformationMessage(l10n.t(`Do you want to update ARCAD server {0} using the package {1}?`, target.server.name, droppedFile.path.substring(droppedFile.path.lastIndexOf('/') + 1)), { modal: true }, l10n.t("Update"))) {
+            updateServer(target, droppedFile);
+          }
         }
-        else if (target instanceof AFSServerItem && await vscode.window.showInformationMessage(l10n.t(`Do you want to update ARCAD server {0} using the package {1}?`, target.server.name, droppedFile.path.substring(droppedFile.path.lastIndexOf('/') + 1)), { modal: true }, l10n.t("Update"))) {
-          update(target, droppedFile);
-        }
+      }
+      else if (target instanceof JettyWrapperItem || target instanceof JettyJobItem) {
+        installWAR(target, droppedFiles);
       }
     }
   }
@@ -290,16 +375,36 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.start.server", (server: AFSServerItem | JettyJobItem) => server.start()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.debug.server", (server: AFSServerItem) => server.start(true)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.stop.server", (server: AFSServerItem | JettyJobItem) => server.stop()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem) => server.show()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem | JettyJobItem) => server.show()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem) => server.delete()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", (serverItem: AFSServerItem) => AFSServerDAO.openLogs(serverItem.server)),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", async (serverItem: AFSServerItem | JettyWrapperItem) => {
+      if (serverItem instanceof AFSServerItem) {
+        AFSServerDAO.openLogs(serverItem.server);
+      }
+      else {
+        const selected = (await vscode.window.showQuickPick(
+          ((await Code4i.listFiles(`${serverItem.location.dataArea}/logs`))
+            .filter(f => f.name.toLocaleLowerCase().endsWith('.log'))
+            .sort((f1, f2) => f2.modified && f1.modified ? f2.modified?.getTime() - f1.modified?.getTime() : f2.name.localeCompare(f1.name))
+            .map(f => ({ label: f.name })))
+          , { title: l10n.t("Select a log file to open") }))?.label;
+        if (selected) {
+          JettyDAO.openLogs(serverItem.location, selected);
+        }
+      }
+    }),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (serverItem: AFSServerItem) => AFSServerDAO.openConfiguration(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.configuration.server", (server: AFSServerItem) => server.clearConfiguration()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.logs.server", (server: AFSServerItem) => server.clearLogs()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.logs.server", (server: AFSServerItem | JettyWrapperItem) => server.clearLogs()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem | JettyWrapperItem) => server.addToIFSBrowser()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.server", install),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.update.server", update)
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.install", install),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.server", installServer),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.update.server", updateServer),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.war", installWAR),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.browser", (node: JettyJobItem) => node.openBrowser()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.config.http", (node: JettyWrapperItem) => JettyDAO.openConfigurationFile(node.location, "http.ini")),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.config.https", (node: JettyWrapperItem) => JettyDAO.openConfigurationFile(node.location, "https.ini"))
   );
 }
 
@@ -331,14 +436,49 @@ function getJettyServerIcon(server: JettyServer): Icon {
   }
 }
 
-async function install(wrapper?: AFSWrapperItem, installationPackage?: vscode.Uri) {
-  await openInstallEditor(wrapper?.location.library, installationPackage, () => wrapper ? wrapper.refresh() : vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload"));
+async function install() {
+  const selected = (await vscode.window.showQuickPick([
+    { label: "AFS Server", description: l10n.t("AFS framework based server") },
+    { label: "Jetty", description: l10n.t("Jetty web server") }
+  ]))?.label;
+  if (selected) {
+    if (selected === "Jetty") {
+      const installPackage = await JettyDAO.selectInstallationPackage();
+      if (installPackage && await openInstallJettyEditor(installPackage)) {
+        vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload");
+      }
+    }
+    else {
+      installServer();
+    }
+  }
 }
 
-async function update(serverItem: AFSServerItem, installationPackage?: vscode.Uri) {
+async function installServer(wrapper?: AFSWrapperItem, installationPackage?: vscode.Uri) {
+  await openInstallAFSEditor(wrapper?.location.library, installationPackage, () => wrapper ? wrapper.refresh() : vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload"));
+}
+
+async function updateServer(serverItem: AFSServerItem, installationPackage?: vscode.Uri) {
   installationPackage = installationPackage || await AFSServerDAO.selectInstallationPackage();
   if (installationPackage && installationPackage.path.toLowerCase().endsWith(".jar") && await AFSServerDAO.update(installationPackage, serverItem.server)) {
     serverItem.refresh();
+  }
+}
+
+async function installWAR(jetty: JettyWrapperItem | JettyJobItem, warFiles?: vscode.Uri[]) {
+  warFiles = warFiles || await JettyDAO.selectWARFiles();
+  if (warFiles && warFiles.every(file => file.path.toLowerCase().endsWith(".war")) &&
+    await vscode.window.showInformationMessage(l10n.t(`Do you really wish to install the following war files (Jetty will be stopped)?`),
+      { detail: warFiles.map(f => `- ${basename(f.path)}`).join("\n"), modal: true },
+      l10n.t("Proceed"))) {
+    if (jetty instanceof JettyWrapperItem) {
+      await JettyDAO.installWARFiles(jetty.location, warFiles);
+      jetty.refresh();
+    }
+    else if(jetty.parent instanceof JettyWrapperItem) {
+      await JettyDAO.installWARFiles(jetty.parent.location, warFiles);
+      jetty.parent.refresh();
+    }    
   }
 }
 

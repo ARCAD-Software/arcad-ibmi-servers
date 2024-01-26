@@ -109,14 +109,40 @@
         "category": "ARCAD AFS for IBM i"
       },
       {
-        "command": "arcad-afs-for-ibm-i.install.server",
+        "command": "arcad-afs-for-ibm-i.install",
         "title": "%install%",
+        "category": "ARCAD AFS for IBM i",
+        "icon": "$(add)"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.install.server",
+        "title": "%install.server%",
         "category": "ARCAD AFS for IBM i",
         "icon": "$(add)"
       },
       {
         "command": "arcad-afs-for-ibm-i.update.server",
         "title": "%update%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.install.war",
+        "title": "%install.war%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.open.browser",
+        "title": "%open.browser%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.open.config.http",
+        "title": "%open.http.config%",
+        "category": "ARCAD AFS for IBM i"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.open.config.https",
+        "title": "%open.https.config%",
         "category": "ARCAD AFS for IBM i"
       }
     ],
@@ -129,7 +155,21 @@
         }
       ]
     },
+    "submenus":[
+      {
+        "id": "arcad-afs-for-ibm-i.jetty.config",
+        "label": "%open.configuration%"
+      }
+    ],
     "menus": {
+      "arcad-afs-for-ibm-i.jetty.config":[
+        {
+          "command": "arcad-afs-for-ibm-i.open.config.http"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.open.config.https"
+        }
+      ],
       "commandPalette": [
         {
           "command": "arcad-afs-for-ibm-i.refresh",
@@ -184,17 +224,37 @@
           "when": "never"
         },
         {
+          "command": "arcad-afs-for-ibm-i.install",
+          "when": "never"
+        },
+        {
           "command": "arcad-afs-for-ibm-i.install.server",
           "when": "never"
         },
         {
           "command": "arcad-afs-for-ibm-i.update.server",
           "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.install.war",
+          "when": "never"        
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.open.browser",
+          "when": "never"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.open.config.http",
+          "when": "never"        
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.open.config.https",
+          "when": "never"
         }
-      ],
+      ],       
       "view/title": [
         {
-          "command": "arcad-afs-for-ibm-i.install.server",
+          "command": "arcad-afs-for-ibm-i.install",
           "group": "navigation@01",
           "when": "view == afsServerBrowser"
         },
@@ -242,7 +302,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.open.logs.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*|jettywrapper$/",
           "group": "02_afsserveractions@02"
         },
         {
@@ -252,7 +312,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.clear.logs.server",
-          "when": "view == afsServerBrowser && viewItem == afsserver",
+          "when": "view == afsServerBrowser && viewItem =~ /^(afsserver|jettywrapper).*$/",
           "group": "03_afsserveractions@01"
         },
         {
@@ -269,6 +329,21 @@
           "command": "arcad-afs-for-ibm-i.delete.server",
           "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
           "group": "10_afsserveractions@01"
+        },
+        {
+          "submenu": "arcad-afs-for-ibm-i.jetty.config",
+          "when": "view == afsServerBrowser && viewItem == jettywrapper",
+          "group": "02_afsserveractions@03"
+        },
+        {
+          "command": "arcad-afs-for-ibm-i.install.war",
+          "when": "view == afsServerBrowser && viewItem == jettywrapper",
+          "group": "04_afsserveractions@01"
+        },        
+        {
+          "command": "arcad-afs-for-ibm-i.open.browser",
+          "when": "view == afsServerBrowser && viewItem == jettyjob_run",
+          "group": "01_jettyjobactions@01"
         }
       ]
     }
