@@ -6,7 +6,10 @@ import { JettyServer } from "../../types";
 export async function openShowJettyServerEditor(server: JettyServer) {
   const instanceSection = Code4i.customUI()
     .addParagraph(`<table>
+      ${addRow(l10n.t("Library"), server.library)}
        ${addRow(l10n.t("IFS path"), server.ifsPath)}
+       ${addRow(l10n.t("HTTP port"), server.configuration.httpPort || "-")}
+       ${addRow(l10n.t("HTTPS port"), server.configuration.httpsPort || "-")}
        ${addRow(l10n.t("Running"), `${server.running ? l10n.t("Yes") : l10n.t("No")}`)}
     </table>`);
   const tabs: ComplexTab[] = [{ label: server.library, fields: instanceSection.fields }];
