@@ -8,7 +8,7 @@
 ----------
 This extension will add the `ARCAD Servers` view to the IBM i explorer provided by [Code for IBM i](https://marketplace.visualstudio.com/items?itemName=HalcyonTechLtd.code-for-ibmi).
 
-This view will allow you to see all the ARCAD servers installed on an IBM i, check and edit their configuration and start/stop them...and much more! 🧰
+This view will allow you to see all the ARCAD servers installed on your IBM i, check and edit their configuration and start/stop them...and much more! 🧰
 
 ![ARCAD Servers view screenshot](images/intro_01.png)
 
