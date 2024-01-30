@@ -41,109 +41,115 @@
       {
         "command": "arcad-afs-for-ibm-i.refresh",
         "title": "%refresh%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(refresh)"
       },
       {
         "command": "arcad-afs-for-ibm-i.reload",
         "title": "%reload%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(sync)"
       },
       {
         "command": "arcad-afs-for-ibm-i.start.server",
         "title": "%start%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(play)"
       },
       {
         "command": "arcad-afs-for-ibm-i.debug.server",
         "title": "%debug%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(debug-alt)"
       },
       {
         "command": "arcad-afs-for-ibm-i.stop.server",
         "title": "%stop%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(debug-stop)"
       },
       {
         "command": "arcad-afs-for-ibm-i.edit.server",
         "title": "%edit%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.show.server",
         "title": "%show%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.delete.server",
         "title": "%delete%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.open.logs.server",
         "title": "%open.logs%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.open.configuration.server",
         "title": "%open.configuration%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
         "title": "%add.to.ifs.browser%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.clear.configuration.server",
         "title": "%clear.configuration%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.clear.logs.server",
         "title": "%clear.logs%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.install",
         "title": "%install%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(add)"
       },
       {
         "command": "arcad-afs-for-ibm-i.install.server",
         "title": "%install.server%",
-        "category": "ARCAD AFS for IBM i",
+        "category": "ARCAD Servers",
         "icon": "$(add)"
       },
       {
         "command": "arcad-afs-for-ibm-i.update.server",
         "title": "%update%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.install.war",
         "title": "%install.war%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.open.browser",
         "title": "%open.browser%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.open.config.http",
         "title": "%open.http.config%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
       },
       {
         "command": "arcad-afs-for-ibm-i.open.config.https",
         "title": "%open.https.config%",
-        "category": "ARCAD AFS for IBM i"
+        "category": "ARCAD Servers"
+      },
+      {
+        "command": "arcad-afs-for-ibm-i.open.online.help",
+        "icon":"$(question)",
+        "title": "%open.online.help%",
+        "category": "ARCAD Servers"
       }
     ],
     "views": {
@@ -253,6 +259,11 @@
         }
       ],       
       "view/title": [
+        {
+          "command": "arcad-afs-for-ibm-i.open.online.help",
+          "group": "navigation@00",
+          "when": "view == afsServerBrowser"
+        },
         {
           "command": "arcad-afs-for-ibm-i.install",
           "group": "navigation@01",
