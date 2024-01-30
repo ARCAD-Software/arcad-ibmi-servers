@@ -19,5 +19,6 @@
   "show": "Show server information",
   "start": "Start",
   "stop": "Stop",
-  "update": "Update"
+  "update": "Update",
+  "open.online.help":"Open online help"
 }
