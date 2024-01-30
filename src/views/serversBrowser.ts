@@ -340,11 +340,18 @@ class ServerBrowserDragAndDropController implements vscode.TreeDragAndDropContro
     const explorerItems = dataTransfer.get("text/uri-list");
     if (explorerItems && explorerItems.value) {
       const droppedFiles = (await explorerItems.asString()).split("\r\n").map(uri => vscode.Uri.parse(uri));
-      if (target instanceof AFSWrapperItem || target instanceof AFSServerItem) {
-        const droppedFile = droppedFiles[0];
-        const fileStat = await vscode.workspace.fs.stat(droppedFile);
-        if (fileStat.type === vscode.FileType.File && droppedFile.path.toLowerCase().endsWith(".jar")) {
-          if (!target || target instanceof AFSWrapperItem) {
+      const droppedFile = droppedFiles[0];
+      const fileStat = await vscode.workspace.fs.stat(droppedFile);
+      const fileName = basename(droppedFile.path).toLocaleLowerCase();
+      const jettyPackage = fileName.includes("webconsole") || fileName.includes("webservices");
+      if (fileStat.type === vscode.FileType.File) {
+        if (fileName.endsWith(".jar")) {
+          if (jettyPackage) {
+            if (!target && await openInstallJettyEditor(droppedFile)) {
+              vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload");
+            }
+          }
+          else if (!target || target instanceof AFSWrapperItem) {
             installServer(target, droppedFile);
           }
           else if (target instanceof AFSServerItem && await vscode.window.showInformationMessage(l10n.t(`Do you want to update ARCAD server {0} using the package {1}?`, target.server.name, droppedFile.path.substring(droppedFile.path.lastIndexOf('/') + 1)), { modal: true }, l10n.t("Update"))) {
@@ -475,10 +482,10 @@ async function installWAR(jetty: JettyWrapperItem | JettyJobItem, warFiles?: vsc
       await JettyDAO.installWARFiles(jetty.location, warFiles);
       jetty.refresh();
     }
-    else if(jetty.parent instanceof JettyWrapperItem) {
+    else if (jetty.parent instanceof JettyWrapperItem) {
       await JettyDAO.installWARFiles(jetty.parent.location, warFiles);
       jetty.parent.refresh();
-    }    
+    }
   }
 }
 
