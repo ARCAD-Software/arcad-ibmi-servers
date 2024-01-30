@@ -36,6 +36,7 @@ export type JettyServer = {
   jobUser?: string
   jobNumber?: string
   jobStatus?: string
+  subsystem?: string
 };
 
 export type JettyConfiguration = {

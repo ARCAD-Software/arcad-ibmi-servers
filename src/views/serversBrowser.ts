@@ -119,8 +119,17 @@ class JettyWrapperItem extends ServerBrowserItem {
           }
         }
         else {
-          vscode.window.showErrorMessage(l10n.t("Failed to stop Jetty Server {0}: {1}", this.location.library, stopResult.stderr));
+          vscode.window.showErrorMessage(l10n.t("Failed to stop Jetty server {0}: {1}", this.location.library, stopResult.stderr));
         }
+      });
+    }
+  }
+
+  async delete() {
+    if (await vscode.window.showWarningMessage(l10n.t("Do you really want to delete Jetty Server {0}?", this.location.library), { modal: true }, l10n.t("Yes"))) {
+      vscode.window.withProgress({ title: l10n.t("Deleting Jetty Server {0}...", this.location.library), location: vscode.ProgressLocation.Notification }, async () => {
+        await JettyDAO.deleteServer(this.location);
+        vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload");
       });
     }
   }
@@ -138,7 +147,7 @@ class JettyJobItem extends ServerBrowserItem {
     }
 
     if (server.configuration.httpsPort) {
-      this.tooltip.appendMarkdown(`${this.tooltip.value.length ? '\n' : ''}- ${l10n.t("HTTPS")}: ${server.configuration.httpPort}`);
+      this.tooltip.appendMarkdown(`${this.tooltip.value.length ? '\n' : ''}- ${l10n.t("HTTPS")}: ${server.configuration.httpsPort}`);
     }
 
     this.command = {
@@ -325,9 +334,11 @@ class AFSServerItem extends ServerBrowserItem {
       yes, yesIfs);
 
     if (answer === yes || answer === yesIfs) {
-      if (await AFSServerDAO.deleteServer(this.server, answer === yesIfs)) {
-        this.parent?.refresh();
-      }
+      vscode.window.withProgress({ title: l10n.t("Deleting ARCAD Server {0}...", this.server.name), location: vscode.ProgressLocation.Notification }, async () => {
+        if (await AFSServerDAO.deleteServer(this.server, answer === yesIfs)) {
+          vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload");
+        }
+      });
     }
   }
 }
@@ -358,10 +369,10 @@ class ServerBrowserDragAndDropController implements vscode.TreeDragAndDropContro
             updateServer(target, droppedFile);
           }
         }
-      }
-      else if (target instanceof JettyWrapperItem || target instanceof JettyJobItem) {
-        installWAR(target, droppedFiles);
-      }
+        else if (target instanceof JettyWrapperItem || target instanceof JettyJobItem) {
+          installWAR(target, droppedFiles);
+        }
+      }      
     }
   }
 }
@@ -384,7 +395,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.stop.server", (server: AFSServerItem | JettyJobItem) => server.stop()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem | JettyJobItem) => server.show()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem) => server.delete()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem | JettyWrapperItem) => server.delete()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", async (serverItem: AFSServerItem | JettyWrapperItem) => {
       if (serverItem instanceof AFSServerItem) {
         AFSServerDAO.openLogs(serverItem.server);

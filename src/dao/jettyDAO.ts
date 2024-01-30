@@ -5,9 +5,9 @@ import { InstallationProperties, JettyConfiguration, JettyServer, ServerLocation
 import { CommonDAO } from "./commonDAO";
 
 export namespace JettyDAO {
-  export async function loadJettyServer(location: ServerLocation): Promise<JettyServer> {
+  export async function loadJettyServer(location: ServerLocation | JettyServer): Promise<JettyServer> {
     const library = location.library;
-    const ifsPath = location.dataArea;
+    const ifsPath = "dataArea" in location ? location.dataArea : location.ifsPath;
     const configuration = await loadConfiguration(ifsPath);
     if (await Code4i.checkObject(library, 'JETTY_PID', '*DTAARA')) {
       const [jettyJob] = (await Code4i.runSQL(
@@ -32,6 +32,7 @@ export namespace JettyDAO {
         jobNumber: String(jettyJob.JOB_NUMBER).trim(),
         running: Boolean(jettyJob.V_JOB_STATUS === '*ACTIVE'),
         jobStatus: jettyJob.V_ACTIVE_JOB_STATUS ? String(jettyJob.V_ACTIVE_JOB_STATUS).trim() : undefined,
+        subsystem: String(jettyJob.V_SBS_NAME)
       };
     }
     else {
@@ -70,7 +71,18 @@ export namespace JettyDAO {
   }
 
   export async function startServer(server: JettyServer) {
-    return await Code4i.runCommand(`STRJTYSVR`, server.library);
+    let result;
+    const jettySBSD = await loadJettySBSD(server);
+    if(jettySBSD){
+      result = await Code4i.runCommand(`STRSBS SBSD(${server.library}/${jettySBSD})`);
+      server = await loadJettyServer(server);
+    }
+
+    if(!result || !server.running){
+      result = await Code4i.runCommand(`STRJTYSVR`, server.library);
+    }
+    
+    return result;
   }
 
   export async function stopServer(server: JettyServer | ServerLocation) {
@@ -136,6 +148,39 @@ export namespace JettyDAO {
 
   export async function install(installationPackage: vscode.Uri, properties: InstallationProperties) {
     return CommonDAO.install(l10n.t("Installing new Jetty web server"), installationPackage, properties, "install.directory");
+  }
+
+  export async function deleteServer(location: ServerLocation){
+    const server = await loadJettyServer(location);
+    const jettySubsystem = await loadJettySBSD(location);
+    if(server.running){
+      let serverStopped;
+      if(server.subsystem === jettySubsystem){
+        serverStopped = await Code4i.runCommand(`ENDSBS SBS(${jettySubsystem}) OPTION(*IMMED)`);
+      }
+      else{
+        serverStopped = await stopServer(server);
+      }
+
+      if(serverStopped.code !== 0){
+        throw new Error(l10n.t("Could not stop Jetty Server {0}: {1}", server.library, serverStopped.stderr));
+      }
+    }
+
+    const deleteIFS = await Code4i.runShellCommand(`rm -rf ${server.ifsPath}`);
+    if(deleteIFS.code === 0){
+      const deleteLibrary = await Code4i.runCommand(`DLTLIB LIB(${server.library})`);
+      if(deleteLibrary.code !== 0){
+        throw new Error(l10n.t("Could not delete Jetty Server {0} library: {1}", server.library, deleteLibrary.stderr));  
+      }
+    }
+    else{
+      throw new Error(l10n.t("Could not delete Jetty Server {0} IFS folder {1}: {2}", server.library, server.ifsPath, deleteIFS.stderr));
+    }
+  }
+
+  async function loadJettySBSD(location : ServerLocation | JettyServer){
+    return (await Code4i.runSQL(`Select OBJNAME From Table(QSYS2.OBJECT_STATISTICS('${location.library}','*SBSD','*ALL')) Fetch first row only`))?.[0].OBJNAME;
   }
 
   async function openFile(server: ServerLocation, relativePath: string, readonly?: boolean) {

@@ -327,7 +327,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.delete.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*$/",
+          "when": "view == afsServerBrowser && viewItem =~ /^(afsserver|jettywrapper).*$/",
           "group": "10_afsserveractions@01"
         },
         {
