@@ -44,6 +44,9 @@ Jetty's job can be displayed by expanding Jetty's node. The node displayed will 
 <!-- tabs:end -->
 
 The buttons to start and stop the job are found on right side of the job's node.
+Hovering over a Jetty job node will display its HTTP and HTTPS port (if defined).
+
+![jetty_ports](../assets/jetty_ports.png)
 
 ### Open application URL
 Right-clicking on Jetty's job while it runs will show an action to open an application.<p>![jetty_open_app](../assets/jetty_open_app.png)</p>
