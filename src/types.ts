@@ -1,12 +1,13 @@
-export type AFSWrapperLocation = {
+export type ServerLocation = {
   library: string
-  version: string
+  dataArea: string
   iasp?: number
+  type: 'AFS' | 'Jetty'
 };
 
 export type AFSServerWrappers = {
   host: string
-  locations: AFSWrapperLocation[]
+  locations: ServerLocation[]
 };
 
 export type AFSServer = {
@@ -23,12 +24,30 @@ export type AFSServer = {
   jobNumber: string
   running: boolean
   jobStatus?: string
-  configuration: ServerConfiguration
+  configuration: AFSServerConfiguration
 };
 
-export type ServerConfiguration = { error?: "noconfig" | "nofolder" } & Record<string, Record<string, string>>;
+export type JettyServer = {
+  library: string
+  ifsPath: string
+  running: boolean
+  configuration: JettyConfiguration
+  jobName?: string
+  jobUser?: string
+  jobNumber?: string
+  jobStatus?: string
+  subsystem?: string
+};
 
-export type ServerUpdate = {
+export type JettyConfiguration = {
+  httpsPort?:number
+  keystore?:string
+  httpPort?: number
+};
+
+export type AFSServerConfiguration = { error?: "noconfig" | "nofolder" } & Record<string, Record<string, string>>;
+
+export type AFSServerUpdate = {
   user: string
   jobqName: string
   jobqLibrary: string
@@ -37,13 +56,4 @@ export type ServerUpdate = {
   javaHome: string
 };
 
-export type InstallationProperties = {
-  ifsPath: string
-  user: string
-  library?: string
-  instance?: string
-  port?: number
-  jobqName?: string
-  jobqLibrary?: string
-  iasp?: string
-};
+export type InstallationProperties = Map<string, string>;

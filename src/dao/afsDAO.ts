@@ -1,9 +1,10 @@
 import axios, { AxiosHeaders } from "axios";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
-import { AFSServer, InstallationProperties, ServerConfiguration, ServerUpdate } from "../types";
+import { AFSServer, AFSServerConfiguration, AFSServerUpdate, InstallationProperties } from "../types";
+import { CommonDAO } from "./commonDAO";
 
-export namespace ServerDAO {
+export namespace AFSServerDAO {
   const CONFIG_FILES = ["org.eclipse.equinox.simpleconfigurator", "config.ini", "osgi.cm.ini"];
 
   export async function listServers(library: string) {
@@ -34,11 +35,11 @@ export namespace ServerDAO {
     return servers;
   }
 
-  async function loadConfiguration(ifsPath: string): Promise<ServerConfiguration> {
-    const config: ServerConfiguration = {};
+  async function loadConfiguration(ifsPath: string): Promise<AFSServerConfiguration> {
+    const config: AFSServerConfiguration = {};
     if ((await Code4i.runShellCommand(`[ -d ${ifsPath} ]`)).code === 0) {
       const configFile = `${ifsPath}/configuration/osgi.cm.ini`;
-      if ((await Code4i.runShellCommand(`[ -f ${configFile} ]`)).code === 0) {
+      if (await Code4i.fileExists(configFile)) {
         const result = (await Code4i.runShellCommand(`cat ${configFile}`));
         if (result.code === 0 && result.stdout) {
           let section;
@@ -119,7 +120,7 @@ export namespace ServerDAO {
     }
   }
 
-  export async function changeServer(server: AFSServer, payload: ServerUpdate) {
+  export async function changeServer(server: AFSServer, payload: AFSServerUpdate) {
     const command = [`${server.library}/CHGAFSSVR`, `INSTANCE(${server.name})`];
     if (payload.user !== server.user) {
       command.push(`USER(${payload.user})`);
@@ -159,7 +160,7 @@ export namespace ServerDAO {
   export async function clearConfiguration(server: AFSServer) {
     return await vscode.window.withProgress({ title: l10n.t("Clearing {0} configuration area...", server.name), location: vscode.ProgressLocation.Notification }, async () => {
       const configurationDirectory = `${server.ifsPath}/configuration`;
-      return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
+      return CommonDAO.withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
         const clearCommand = [
           `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
           `rm -rf ${configurationDirectory}/*`,
@@ -193,36 +194,12 @@ export namespace ServerDAO {
   }
 
   export async function install(installationPackage: vscode.Uri, properties: InstallationProperties) {
-    return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Installing new ARCAD server"), cancellable: false }, async progress => {
-      return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
-        progress.report({ message: l10n.t("uploading installation package"), increment: 33 });
-        const setupFile = `${workDirectory}/setup.jar`;
-        try {
-          await Code4i.getConnection().uploadFiles([{ local: installationPackage, remote: setupFile }]);
-        }
-        catch (error: any) {
-          vscode.window.showErrorMessage(l10n.t("Failed to upload installation package: {0}", error));
-          return false;
-        }
-        const installationProperties = Array.from(toInstallerProperties(properties));
-        progress.report({ message: l10n.t("running installation process"), increment: 33 });
-        const installResult = await Code4i.runShellCommand(`java ${installationProperties.map(([key, value]) => `-D${key}=${value}`).join(" ")} -jar ${setupFile} --unattended && echo "${installationProperties.map(([key, value]) => `${key}=${value}`).join("\n")}" > $(ls ${properties.ifsPath}/*.properties)`, workDirectory);
-        progress.report({ increment: 34 });
-        if (installResult.code === 0) {
-          vscode.window.showInformationMessage(l10n.t("Installation process completed!"));
-          return true;
-        }
-        else {
-          vscode.window.showErrorMessage(l10n.t("Installation process failed: {0}", installResult.stderr));
-          return false;
-        }
-      });
-    });
+    return CommonDAO.install(l10n.t("Installing new ARCAD server"), installationPackage, properties, "install.directory");
   }
 
   export async function update(installationPackage: vscode.Uri, server: AFSServer) {
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Updating ARCAD server {0}", server.name), cancellable: false }, async progress => {
-      return withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      return CommonDAO.withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
         progress.report({ message: l10n.t("uploading installation package"), increment: 25 });
         const setupFile = `${workDirectory}/setup.jar`;
         try {
@@ -254,61 +231,7 @@ export namespace ServerDAO {
   }
 
   export async function selectInstallationPackage() {
-    return (await vscode.window.showOpenDialog({
-      canSelectMany: false,
-      filters: { 'Installation package': ['jar'] },
-      title: l10n.t("Select an ARCAD Server installation package")
-
-    }))?.[0];
-  }
-
-  async function withTempDirectory(directory: string, process: (directory: string) => Promise<boolean>) {
-    const prepareDirectory = await Code4i.runShellCommand(`rm -rf ${directory} && mkdir -p ${directory}`);
-    if (prepareDirectory.code === 0) {
-      try {
-        return await process(directory);
-      }
-      finally {
-        await Code4i.runShellCommand(`rm -rf ${directory}`);
-      }
-    }
-    else {
-      vscode.window.showErrorMessage(l10n.t("Failed to create temporary directory {0}: {1}", directory, prepareDirectory.stderr));
-      return false;
-    }
-  }
-
-  function toInstallerProperties(properties: InstallationProperties) {
-    const props = new Map<string, string>();
-    props.set("install.directory", properties.ifsPath);
-    props.set("afs.user", properties.user);
-    props.set("afs.https.port", "0");
-
-    if (properties.instance) {
-      props.set("afs.starter.instance", properties.instance);
-    }
-
-    if (properties.library) {
-      props.set("afs.starter.library", properties.library);
-    }
-
-    if (properties.iasp) {
-      props.set("afs.starter.iasp", properties.iasp);
-    }
-
-    if (properties.port) {
-      props.set("afs.http.port", String(properties.port));
-    }
-
-    if (properties.jobqName) {
-      props.set("arcad.jobq", properties.jobqName);
-    }
-
-    if (properties.jobqLibrary) {
-      props.set("arcad.jobq.library", properties.jobqLibrary);
-    }
-
-    return props;
+    return CommonDAO.selectInstallationPackage(l10n.t("Select an ARCAD Server installation package"));
   }
 
   export async function get<T>(server: AFSServer, endpoint: string, accept?: string): Promise<T | undefined> {

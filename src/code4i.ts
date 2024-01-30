@@ -36,6 +36,14 @@ export namespace Code4i {
     return codeForIBMi.instance.getConnection();
   }
 
+  export function listFiles(folder: string) {
+    return codeForIBMi.instance.getContent().getFileList(folder);
+  }
+
+  export async function checkObject(library:string, name:string, type:string) {
+    return codeForIBMi.instance.getContent().checkObject({library, name, type});
+  }
+
   export function onEvent(event: IBMiEvent, todo: Function) {
     codeForIBMi.instance.onEvent(event, todo);
   }
@@ -51,6 +59,10 @@ export namespace Code4i {
   export function open(path: string, options?: OpenEditableOptions) {
     vscode.commands.executeCommand("code-for-ibmi.openEditable", path, options);
   }
+
+export async function fileExists(file:string){
+  return (await Code4i.runShellCommand(`[ -f ${file} ]`)).code === 0;
+}
 
   async function checkJava() {
     const [result] = await runSQL(`With JAVA_PTF_GROUP as (

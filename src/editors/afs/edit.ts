@@ -1,14 +1,14 @@
 
 import { l10n } from "vscode";
-import { Code4i } from "../code4i";
-import { ServerDAO } from "../dao/serverDAO";
-import { AFSServer, ServerUpdate } from "../types";
+import { Code4i } from "../../code4i";
+import { AFSServerDAO } from "../../dao/afsDAO";
+import { AFSServer, AFSServerUpdate } from "../../types";
 
-type AFSServerPage = ServerUpdate & {
+type AFSServerPage = AFSServerUpdate & {
   buttons: 'save' | 'saveRestart'
 };
 
-export async function openEditServerEditor(server: AFSServer, afterSave: (restart?: boolean) => void) {
+export async function openEditAFSServerEditor(server: AFSServer, afterSave: (restart?: boolean) => void) {
   const page = await Code4i.customUI()
     .addInput("user", l10n.t("User"), l10n.t("The server job's user"), { default: server.user, maxlength: 10, minlength: 1 })
     .addInput("jobqName", l10n.t("Job queue"), l10n.t("The job queue used to submitt the server's job"), { default: server.jobqName, maxlength: 10, minlength: 1 })
@@ -24,7 +24,7 @@ export async function openEditServerEditor(server: AFSServer, afterSave: (restar
 
   if (page && page.data) {
     page.panel.dispose();
-    if (await ServerDAO.changeServer(server, page.data)) {
+    if (await AFSServerDAO.changeServer(server, page.data)) {
       afterSave(page.data.buttons === "saveRestart");
     }
   }
