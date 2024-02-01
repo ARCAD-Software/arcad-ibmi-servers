@@ -13,6 +13,8 @@ export async function openShowAFSServerEditor(server: AFSServer) {
        ${addRow(l10n.t("Java home"), `${server.javaHome}`)}
        ${addRow(l10n.t("Java properties"), `${server.javaProps}`)}
        ${addRow(l10n.t("Running"), `${server.running ? l10n.t("Yes") : l10n.t("No")}`)}
+       ${addRow(l10n.t("HTTP port"), `${server.configuration.rest?.port || '-'}`)}
+       ${addRow(l10n.t("HTTPS port"), `${server.configuration.rest?.portssl || '-'}`)}
     </table>`);
   const tabs: ComplexTab[] = [{ label: l10n.t("{0} instance", server.name), fields: instanceSection.fields }];
 
@@ -51,7 +53,7 @@ export async function openShowAFSServerEditor(server: AFSServer) {
         ${addRow(l10n.t("Job queue"), `${job.JOB_QUEUE_LIBRARY}/${job.JOB_QUEUE_NAME}`)}
         ${addRow(l10n.t("Entered system on"), job.JOB_ENTERED_SYSTEM_TIME)}
         ${addRow(l10n.t("Active on"), job.JOB_ACTIVE_TIME)}
-        ${addRow(l10n.t("Pick temporary storage"), job.PEAK_TEMPORARY_STORAGE)}
+        ${addRow(l10n.t("Peack temporary storage"), job.PEAK_TEMPORARY_STORAGE)}
         ${addRow(l10n.t("CCSID"), job.CCSID)}
         ${addRow(l10n.t("Language ID"), job.LANGUAGE_ID)}
         ${addRow(l10n.t("Country ID"), job.COUNTRY_ID)}
