@@ -2,17 +2,19 @@ import { basename } from "path";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { AFSServerDAO } from "../dao/afsDAO";
+import { ArcadDAO } from "../dao/arcadDAO";
 import { JettyDAO } from "../dao/jettyDAO";
 import { openEditAFSServerEditor } from "../editors/afs/edit";
 import { openInstallAFSEditor } from "../editors/afs/install";
 import { openShowAFSServerEditor } from "../editors/afs/show";
 import { openInstallJettyEditor } from "../editors/jetty/install";
 import { openShowJettyServerEditor } from "../editors/jetty/show";
-import { AFSServer, JettyServer, ServerLocation } from "../types";
+import { AFSServer, ArcadInstance, JettyServer, ServerLocation } from "../types";
 
 class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<ServerBrowserItem | undefined | null | void>;
   private readonly locations: ServerLocation[] = [];
+  private readonly arcadInstancesNode = new ArcadInstancesItem();
   readonly onDidChangeTreeData = this.emitter.event;
 
   constructor() {
@@ -33,9 +35,15 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
     }
     else {
       if (!this.locations.length) {
-        this.locations.push(...await findLocations());
+        await vscode.window.withProgress({
+          location: vscode.ProgressLocation.Notification,
+          title: l10n.t("Loading ARCAD servers...")
+        },
+          async () => this.locations.push(...await findLocations()));
       }
-      const items: ServerBrowserItem[] = [];
+
+      const items: ServerBrowserItem[] = [this.arcadInstancesNode];
+
       for (const location of this.locations) {
         switch (location.type) {
           case "Jetty":
@@ -47,6 +55,7 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
             break;
         }
       }
+
       return items;
     }
   }
@@ -57,6 +66,7 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
 
   reload() {
     this.locations.splice(0, this.locations.length);
+    this.arcadInstancesNode.reload();
     this.refresh();
   }
 }
@@ -83,6 +93,41 @@ class ServerBrowserItem extends vscode.TreeItem {
 
   refresh() {
     vscode.commands.executeCommand("arcad-afs-for-ibm-i.refresh", this);
+  }
+}
+
+class ArcadInstancesItem extends ServerBrowserItem {
+  private readonly instances: ArcadInstance[] = [];
+
+  constructor() {
+    super(l10n.t("ARCAD instances"), { icon: { name: "home" }, state: vscode.TreeItemCollapsibleState.Collapsed });
+    this.contextValue = "arcadinstances";
+  }
+
+  async getChildren() {
+    if (!this.instances.length) {
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: l10n.t("Loading ARCAD instances...")
+      }, async () => this.instances.push(...await ArcadDAO.loadInstances()));
+    }
+
+    return this.instances.map(instance => new ArcadInstanceItem(this, instance));
+  }
+
+  reload() {
+    this.instances.splice(0, this.instances.length);
+  }
+}
+
+class ArcadInstanceItem extends ServerBrowserItem {
+  constructor(parent: ArcadInstancesItem, readonly instance: ArcadInstance) {
+    super(instance.code, { icon: { name: "circle" }, state: vscode.TreeItemCollapsibleState.None, parent });
+    this.contextValue = "arcadinstance";
+    this.description = `${instance.version} - ${instance.text}`;
+    this.tooltip = new vscode.MarkdownString(`${instance.text}\n`)
+      .appendMarkdown(`- ${l10n.t("Production library")}: ${instance.library}\n`)
+      .appendMarkdown(`- iASP: ${instance.iasp || '*SYSBAS'}`);
   }
 }
 
@@ -372,7 +417,7 @@ class ServerBrowserDragAndDropController implements vscode.TreeDragAndDropContro
         else if (target instanceof JettyWrapperItem || target instanceof JettyJobItem) {
           installWAR(target, droppedFiles);
         }
-      }      
+      }
     }
   }
 }
@@ -501,26 +546,20 @@ async function installWAR(jetty: JettyWrapperItem | JettyJobItem, warFiles?: vsc
 }
 
 async function findLocations(): Promise<ServerLocation[]> {
-  return await vscode.window.withProgress({
-    location: vscode.ProgressLocation.Notification,
-    title: l10n.t("Loading ARCAD servers...")
-  },
-    async () => {
-      const rows = await Code4i.runSQL(
-        `Select OBJLIB, IASP_NUMBER, DATA_AREA_VALUE, 'AFS' as TYPE ` +
-        `From Table(QSYS2.OBJECT_STATISTICS('*ALL','*DTAARA','AFSVERSION')) ` +
-        `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => OBJNAME, DATA_AREA_LIBRARY => OBJLIB))` +
-        ` Union ` +
-        `Select OBJLIB, IASP_NUMBER, DATA_AREA_VALUE, 'Jetty' as TYPE ` +
-        `From Table(QSYS2.OBJECT_STATISTICS('*ALL','*DTAARA','JETTYHOME')) ` +
-        `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => OBJNAME, DATA_AREA_LIBRARY => OBJLIB))` +
-        `Order by TYPE, OBJLIB`
-      );
-      return (rows.map(row => ({
-        library: String(row.OBJLIB).trim(),
-        iasp: Number(row.IASP_NUMBER || 0),
-        dataArea: String(row.DATA_AREA_VALUE).trim(),
-        type: String(row.TYPE).trim(),
-      })) as ServerLocation[]);
-    });
+  const rows = await Code4i.runSQL(
+    `Select OBJLIB, IASP_NUMBER, DATA_AREA_VALUE, 'AFS' as TYPE ` +
+    `From Table(QSYS2.OBJECT_STATISTICS('*ALL','*DTAARA','AFSVERSION')) ` +
+    `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => OBJNAME, DATA_AREA_LIBRARY => OBJLIB))` +
+    ` Union ` +
+    `Select OBJLIB, IASP_NUMBER, DATA_AREA_VALUE, 'Jetty' as TYPE ` +
+    `From Table(QSYS2.OBJECT_STATISTICS('*ALL','*DTAARA','JETTYHOME')) ` +
+    `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => OBJNAME, DATA_AREA_LIBRARY => OBJLIB))` +
+    `Order by TYPE, OBJLIB`
+  );
+  return (rows.map(row => ({
+    library: String(row.OBJLIB).trim(),
+    iasp: Number(row.IASP_NUMBER || 0),
+    dataArea: String(row.DATA_AREA_VALUE).trim(),
+    type: String(row.TYPE).trim(),
+  })) as ServerLocation[]);
 }
