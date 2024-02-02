@@ -57,3 +57,20 @@ export type AFSServerUpdate = {
 };
 
 export type InstallationProperties = Map<string, string>;
+
+export type ArcadInstance = {
+  code:string
+  text:string  
+  version:string
+  library:string
+  iasp?:string
+};
+
+export type ArcadLicense = {
+  name: string
+  license: string
+  count: number
+  type: "T" | "D"
+  limit: string
+  warning: string
+};
