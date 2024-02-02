@@ -64,5 +64,5 @@ export namespace CommonDAO {
       }
     });
     return props;
-  }
+  }  
 }

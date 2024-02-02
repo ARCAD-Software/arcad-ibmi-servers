@@ -2,6 +2,7 @@ import { ComplexTab } from "@halcyontech/vscode-ibmi-types/api/CustomUI";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../../code4i";
 import { JettyServer } from "../../types";
+import { addRow } from "../editor-utils";
 
 export async function openShowJettyServerEditor(server: JettyServer) {
   const instanceSection = Code4i.customUI()
@@ -49,18 +50,4 @@ export async function openShowJettyServerEditor(server: JettyServer) {
   }
 
   Code4i.customUI().addComplexTabs(tabs).loadPage(l10n.t("Show Jetty {0}", server.library));
-}
-
-function addRow(key: string, value?: any) {
-  if (value !== undefined) {
-    return /*html*/ `<tr>
-      <td><vscode-label>${key}:</vscode-label></td>
-      <td>${value}</td>
-    </tr>`;
-  }
-  else {
-    return /*html*/ `<tr>
-      <td colspan="2"><h3><u>${key}</u></h3></td>
-    </tr>`;
-  }
 }

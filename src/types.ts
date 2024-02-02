@@ -65,3 +65,12 @@ export type ArcadInstance = {
   library:string
   iasp?:string
 };
+
+export type ArcadLicense = {
+  name: string
+  license: string
+  count: number
+  type: "T" | "D"
+  limit: string
+  warning: string
+};

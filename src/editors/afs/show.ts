@@ -3,6 +3,7 @@ import vscode, { l10n } from "vscode";
 import { Code4i } from "../../code4i";
 import { AFSServerDAO } from "../../dao/afsDAO";
 import { AFSServer } from "../../types";
+import { addRow, capitalize } from "../editor-utils";
 
 export async function openShowAFSServerEditor(server: AFSServer) {
   const instanceSection = Code4i.customUI()
@@ -69,22 +70,4 @@ export async function openShowAFSServerEditor(server: AFSServer) {
   }
 
   Code4i.customUI().addComplexTabs(tabs).loadPage(l10n.t("Show {0}", server.name));
-}
-
-function addRow(key: string, value?: any) {
-  if (value !== undefined) {
-    return /*html*/ `<tr>
-      <td><vscode-label>${key}:</vscode-label></td>
-      <td>${value}</td>
-    </tr>`;
-  }
-  else {
-    return /*html*/ `<tr>
-      <td colspan="2"><h3><u>${key}</u></h3></td>
-    </tr>`;
-  }
-}
-
-function capitalize(text: string) {
-  return text[0].toUpperCase() + text.substring(1);
 }

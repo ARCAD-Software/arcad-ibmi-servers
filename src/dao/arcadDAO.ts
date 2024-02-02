@@ -1,21 +1,5 @@
-//01 M MACROMAKER Process Manager : MMLICPGM   MMNBUSR    MMTYPCLE   MMDATLIM   MMAVERT    *NOTCHK
-//02 M REPOSITORY Open Repository : AROLICPGM  ARONBUSR   AROTYPCLE  ARODATLIM  AROAVERT   *NOTCHK
-//03 M            Skipper/Builder
-//04 S ARCAD_CM     Full dev.seat : ARLICPGM   ARNBDEV    ARTYPCLE   ARDATLIM   ARAVERT
-//05 S ARCAD_ADL    Interf.ADELIA : ARALICPGM             ARATYPCLE  ARADATLIM  ARAAVERT
-//07 M ARCAD_INT  Integrater. . . : INLICPGM              INTYPCLE   INDATLIM   INAVERT
-//08 M ARCAD_DLV  Deliver . . . . : DLLICPGM              DLTYPCLE   DLDATLIM   DLAVERT
-//09 M ARCAD_DTC  Data Changer. . : ARTLICPGM             ARTTYPCLE  ARTDATLIM  ARTAVERT
-//10 M ARCAD_FRM  Transformer Fld : FRLICPGM              FRTYPCLE   FRDATLIM   FRAVERT
-//11 M TRANSF_DB  Transformer DB  : TDBLICPGM             TDBTYPCLE  TDBDATLIM  TDBAVERT
-//12 M TRANSF_CAS Transform. Case : TFCLICPGM             TFCTYPCLE  TFCDATLIM  TFCAVERT
-//14 M VERIFIER   Verifier  . . . : OBVLICPGM  OBVNBDEV   OBVTYPCLE  OBVDATLIM  OBVAVERT
-//15 M OBSERVER   Observer  . . . : OBSLICPGM  OBSNBDEV   OBSTYPCLE  OBSDATLIM  OBSAVERT
-//16
-//17 M CLOUDKYSRV Cloud Key Serv. : CKSLICPGM             CKSTYPCLE  CKSDATLIM  CKSAVERT
-
 import { Code4i } from "../code4i";
-import { ArcadInstance } from "../types";
+import { ArcadInstance, ArcadLicense } from "../types";
 
 export namespace ArcadDAO {
   export async function loadInstances() {
@@ -33,5 +17,42 @@ export namespace ArcadDAO {
       iasp: instance.INS_NASPNB && instance.INS_NASPNB !== '1' ? String(instance.INS_NASPNB).trim() : undefined,
       version: String(instance.DATA_AREA_VALUE).trim(),
     }) as ArcadInstance);
+  }
+
+  export async function readLicenses(instance: ArcadInstance) {
+    const library = instance.library;
+    const licenses = await Code4i.runSQL(`${[
+      licenseQuery(library, 'Skipper developper seats', 'ARLICPGM', 'ARTYPCLE', 'ARDATLIM', 'ARAVERT', 'ARNBDEV'),
+      licenseQuery(library, 'ADELIA Interface', 'ARALICPGM', 'ARATYPCLE', 'ARADATLIM', 'ARAAVERT'),
+      licenseQuery(library, 'Integrater', 'INLICPGM', 'INTYPCLE', 'INDATLIM', 'INAVERT'),
+      licenseQuery(library, 'Deliver', 'DLLICPGM', 'DLTYPCLE', 'DLDATLIM', 'DLAVERT'),
+      licenseQuery(library, 'Data Changer', 'ARTLICPGM', 'ARTTYPCLE', 'ARTDATLIM', 'ARTAVERT'),
+      licenseQuery(library, 'Transformer Field', 'FRLICPGM', 'FRTYPCLE', 'FRDATLIM', 'FRAVERT'),
+      licenseQuery(library, 'Transformer DB', 'TDBLICPGM', 'TDBTYPCLE', 'TDBDATLIM', 'TDBAVERT'),
+      licenseQuery(library, 'Transformer Case', 'TFCLICPGM', 'TFCTYPCLE', 'TFCDATLIM', 'TFCAVERT'),
+      licenseQuery(library, 'Verifier', 'OBVLICPGM', 'OBVTYPCLE', 'OBVDATLIM', 'OBVAVERT', 'OBVNBDEV'),
+      licenseQuery(library, 'Observer', 'OBSLICPGM', 'OBSTYPCLE', 'OBSDATLIM', 'OBSAVERT', 'OBSNBDEV'),
+      licenseQuery(library, 'Cloud Key Server', 'CKSLICPGM', 'CKSTYPCLE', 'CKSDATLIM', 'CKSAVERT')
+    ].join(" Union ")} Order by NAME`);
+
+    return licenses.map(license => ({
+      name: String(license.NAME),
+      license: String(license.KEY),
+      count: Number(license.NUMLIC),
+      type: String(license.TYPE) === "T" ? "T" : "D",
+      limit: String(license.LIMIT),
+      warning: String(license.WARN)
+    }) as ArcadLicense);
+
+    //ALICCVTRPG ACTION(*USE)
+  }
+
+  function licenseQuery(library: string, name: string, licenseData: string, typeData: string, limitData: string, warningData: string, countData?: string) {
+    return `Select '${name}' as NAME, KEY.DATA_AREA_VALUE As KEY, TYPE.DATA_AREA_VALUE As TYPE, LIMIT.DATA_AREA_VALUE As LIMIT, WARN.DATA_AREA_VALUE As WARN, ${countData ? 'NUMLIC.DATA_AREA_VALUE As NUMLIC' : '-1 as NUMLIC'}
+    From Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => '${licenseData}', DATA_AREA_LIBRARY => '${library}')) As KEY    
+    Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => '${typeData}', DATA_AREA_LIBRARY => '${library}')) As TYPE
+    Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => '${limitData}', DATA_AREA_LIBRARY => '${library}')) As LIMIT
+    Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => '${warningData}', DATA_AREA_LIBRARY => '${library}')) As WARN
+    ${countData ? `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => '${countData}', DATA_AREA_LIBRARY => '${library}')) As NUMLIC` : ''}`;
   }
 }

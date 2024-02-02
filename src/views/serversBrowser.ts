@@ -7,6 +7,7 @@ import { JettyDAO } from "../dao/jettyDAO";
 import { openEditAFSServerEditor } from "../editors/afs/edit";
 import { openInstallAFSEditor } from "../editors/afs/install";
 import { openShowAFSServerEditor } from "../editors/afs/show";
+import { openShowArcadInstanceEditor } from "../editors/arcad/show";
 import { openInstallJettyEditor } from "../editors/jetty/install";
 import { openShowJettyServerEditor } from "../editors/jetty/show";
 import { AFSServer, ArcadInstance, JettyServer, ServerLocation } from "../types";
@@ -122,12 +123,22 @@ class ArcadInstancesItem extends ServerBrowserItem {
 
 class ArcadInstanceItem extends ServerBrowserItem {
   constructor(parent: ArcadInstancesItem, readonly instance: ArcadInstance) {
-    super(instance.code, { icon: { name: "circle" }, state: vscode.TreeItemCollapsibleState.None, parent });
+    super(instance.code, { icon: { name: "circle-filled" }, state: vscode.TreeItemCollapsibleState.None, parent });
     this.contextValue = "arcadinstance";
     this.description = `${instance.version} - ${instance.text}`;
     this.tooltip = new vscode.MarkdownString(`${instance.text}\n`)
       .appendMarkdown(`- ${l10n.t("Production library")}: ${instance.library}\n`)
       .appendMarkdown(`- iASP: ${instance.iasp || '*SYSBAS'}`);
+
+    this.command = {
+      title: "",
+      command: "arcad-afs-for-ibm-i.show.server",
+      arguments: [this]
+    };
+  }
+
+  show() {
+    openShowArcadInstanceEditor(this.instance);
   }
 }
 
@@ -438,7 +449,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.start.server", (server: AFSServerItem | JettyJobItem) => server.start()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.debug.server", (server: AFSServerItem) => server.start(true)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.stop.server", (server: AFSServerItem | JettyJobItem) => server.stop()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem | JettyJobItem) => server.show()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.show.server", (server: AFSServerItem | JettyJobItem | ArcadInstanceItem) => server.show()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.edit.server", (server: AFSServerItem) => server.edit()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.delete.server", (server: AFSServerItem | JettyWrapperItem) => server.delete()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.logs.server", async (serverItem: AFSServerItem | JettyWrapperItem) => {
