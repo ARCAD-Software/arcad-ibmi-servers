@@ -21,7 +21,7 @@ export async function openShowArcadInstanceEditor(instance: ArcadInstance) {
       <vscode-table-header-cell>${l10n.t("Product")}</vscode-table-header-cell>
       <vscode-table-header-cell>${l10n.t("Key")}</vscode-table-header-cell>
       <vscode-table-header-cell>${l10n.t("Type")}</vscode-table-header-cell>
-      <vscode-table-header-cell>${l10n.t("Count")}</vscode-table-header-cell>
+      <vscode-table-header-cell>${l10n.t("Licenses")}</vscode-table-header-cell>
       <vscode-table-header-cell>${l10n.t("Limit")}</vscode-table-header-cell>
     </vscode-table-header>
     <vscode-table-body slot="body">
