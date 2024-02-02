@@ -1,5 +1,6 @@
 * [ARCAD-IBM i Servers Manager](/)
 * [Prerequisites](pages/prerequisites.md)
 * [Getting started](pages/getting-started.md)
+* [ARCAD instances](pages/arcad_instances.md)
 * [AFS Servers management](pages/afs_management.md)
 * [Jetty Servers management](pages/jetty_management.md)
