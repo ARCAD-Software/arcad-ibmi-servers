@@ -7,3 +7,6 @@ Every ARCAD instance found on the IBM i is listed under the ARCAD Instances node
 Clicking on an instance will open a read-only editor displaying the instance's details as well as its licenses.
 
 ![arcad_instance](../assets/arcad_instance.png)
+
+## Add ARCAD instance IFS root folder to the IFS browser
+This will run `Code for IBM i` action to add a new IFS shortcut in the `IFS Browser`, pre-filling the prompt with ARCAD instance's IFS root folder (namely `/iasp/arc<instance code>IfsPrd`).<br/>![Add IFS shortcut](../assets/add_ifs_arcad.png)
