@@ -308,7 +308,7 @@
         },
         {
           "command": "arcad-afs-for-ibm-i.add.to.ifs.browser.server",
-          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*|jettywrapper$/",
+          "when": "view == afsServerBrowser && viewItem =~ /^afsserver.*|jettywrapper|arcadinstance$/",
           "group": "02_afsserveractions@01"
         },
         {
