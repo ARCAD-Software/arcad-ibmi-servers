@@ -3,7 +3,6 @@ import vscode, { l10n } from "vscode";
 
 let codeForIBMi: CodeForIBMi;
 export namespace Code4i {
-  let ccsidFix: string | undefined;
 
   export async function initialize() {
     const codeForIBMiExtension = vscode.extensions.getExtension<CodeForIBMi>('halcyontechltd.code-for-ibmi');
@@ -11,7 +10,6 @@ export namespace Code4i {
       codeForIBMi = codeForIBMiExtension.isActive ? codeForIBMiExtension.exports : await codeForIBMiExtension.activate();
       console.log(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' is now active!"));
       codeForIBMi.instance.onEvent("connected", checkJava);
-      codeForIBMi.instance.onEvent("disconnected", () => { ccsidFix = undefined; });
     }
     else {
       throw new Error(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' requires the 'halcyontechltd.code-for-ibmi' extension to be active!"));
@@ -32,14 +30,7 @@ export namespace Code4i {
   }
 
   export async function runSQL(statement: string) {
-    if (ccsidFix === undefined) {
-      ccsidFix = await loadCCSID();
-    }
-    const result = await codeForIBMi.instance.getContent().runSQL(`${ccsidFix}${statement.endsWith(';') ? statement : statement + ";"}`);
-    if(ccsidFix && result.length){
-      result.pop();
-    }
-    return result;
+    return await codeForIBMi.instance.getContent().runSQL(`${statement.endsWith(';') ? statement : statement + ";"}`);
   }
 
   export function getConnection() {
@@ -110,18 +101,5 @@ export namespace Code4i {
           }
         });
     }
-  }
-
-  async function loadCCSID() {
-    if (!getConnection().config?.enableSQL) {
-      const result = await runCommand("DSPJOB OPTION(*DFNA)");
-      const [defaultCCSID] = result.stdout.split("\n").filter(line => line.includes("DFTCCSID"));
-      const ccsid = Number(defaultCCSID.split("DFTCCSID").at(1)?.trim());
-      if (!isNaN(ccsid) && (ccsid > 0 || ccsid < 65535)) {
-        return `Call QSYS2.QCMDEXC('CHGJOB CCSID(${ccsid})');\n`;
-      }
-    }
-
-    return "";
   }
 }
