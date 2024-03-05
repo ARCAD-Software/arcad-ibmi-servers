@@ -140,6 +140,10 @@ class ArcadInstanceItem extends ServerBrowserItem {
   show() {
     openShowArcadInstanceEditor(this.instance);
   }
+
+  addToIFSBrowser() {
+    vscode.commands.executeCommand("code-for-ibmi.addIFSShortcut", { path: `${this.instance.iasp ? `/${this.instance.iasp}` : ''}/arc${this.instance.code.toLocaleLowerCase()}IfsPrd` });
+  }
 }
 
 class JettyWrapperItem extends ServerBrowserItem {
@@ -471,7 +475,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.configuration.server", (serverItem: AFSServerItem) => AFSServerDAO.openConfiguration(serverItem.server)),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.configuration.server", (server: AFSServerItem) => server.clearConfiguration()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.clear.logs.server", (server: AFSServerItem | JettyWrapperItem) => server.clearLogs()),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem | JettyWrapperItem) => server.addToIFSBrowser()),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.add.to.ifs.browser.server", (server: AFSServerItem | JettyWrapperItem | ArcadInstanceItem) => server.addToIFSBrowser()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.install", install),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.server", installServer),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.update.server", updateServer),
