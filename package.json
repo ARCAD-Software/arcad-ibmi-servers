@@ -3,7 +3,7 @@
   "publisher": "arcadsoftware",
   "displayName": "ARCAD-IBM i Servers Manager",
   "description": "This extension lets you manage your ARCAD Servers (AFS and Jetty) installed on IBM i. Powered by Code for IBM i.",
-  "version": "1.1.2-dev.0",
+  "version": "1.1.3-dev.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"
