@@ -1,22 +1,37 @@
+import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { ArcadInstance, ArcadLicense } from "../types";
 
 export namespace ArcadDAO {
   export async function loadInstances() {
-    const instances = await Code4i.runSQL(
-      `Select INS_JCODE, INS_CTXT, INS_JPRDL, INS_NASPNB, DATA_AREA_VALUE ` +
+    const instanceRows = await Code4i.runSQL(
+      `Select INS_JCODE, INS_CTXT, INS_JPRDL, INS_NASPNB ` +
       `From ARCAD_SYS.AARCINSF1 ` +
-      `Cross Join Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => 'ARCVERSION', DATA_AREA_LIBRARY => INS_JPRDL)) ` +
       `Order by INS_JCODE`
     );
 
-    return instances.map(instance => ({
-      code: String(instance.INS_JCODE).trim(),
-      text: String(instance.INS_CTXT).trim(),
-      library: String(instance.INS_JPRDL).trim(),
-      iasp: instance.INS_NASPNB && instance.INS_NASPNB !== '1' ? String(instance.INS_NASPNB).trim() : undefined,
-      version: String(instance.DATA_AREA_VALUE).trim(),
-    }) as ArcadInstance);
+    const instances: ArcadInstance[] = [];
+    for (const instance of instanceRows) {
+      const code = String(instance.INS_JCODE).trim();
+      const library = String(instance.INS_JPRDL).trim();
+      let version = undefined;
+      try {
+        const [versionRow] = await Code4i.runSQL(`Select DATA_AREA_VALUE From Table(QSYS2.DATA_AREA_INFO( DATA_AREA_NAME => 'ARCVERSION', DATA_AREA_LIBRARY => '${library}'))`);
+        version = String(versionRow.DATA_AREA_VALUE).trim();
+      }
+      catch (error: any) {
+        vscode.window.showErrorMessage(l10n.t("Error reading instance {0} version: {1}", code, error));
+      }
+
+      instances.push({
+        code,
+        text: String(instance.INS_CTXT).trim(),
+        library,
+        iasp: instance.INS_NASPNB && instance.INS_NASPNB !== '1' ? String(instance.INS_NASPNB).trim() : undefined,
+        version
+      });
+    }
+    return instances;
   }
 
   export async function readLicenses(instance: ArcadInstance) {

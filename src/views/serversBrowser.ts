@@ -123,18 +123,21 @@ class ArcadInstancesItem extends ServerBrowserItem {
 
 class ArcadInstanceItem extends ServerBrowserItem {
   constructor(parent: ArcadInstancesItem, readonly instance: ArcadInstance) {
-    super(instance.code, { icon: { name: "circle-filled" }, state: vscode.TreeItemCollapsibleState.None, parent });
-    this.contextValue = "arcadinstance";
-    this.description = `${instance.version} - ${instance.text}`;
+    const valid = instance.version !== undefined;
+    super(instance.code, { icon: { name: "circle-filled", color: valid ? undefined : "notificationsErrorIcon.foreground" }, state: vscode.TreeItemCollapsibleState.None, parent });
+    this.contextValue = `arcadinstance${valid ? '' : '_invalid'}`;
+    this.description = valid ? `${instance.version} - ${instance.text}` : l10n.t("Invalid instance; check library {0} state.", instance.library);
     this.tooltip = new vscode.MarkdownString(`${instance.text}\n`)
       .appendMarkdown(`- ${l10n.t("Production library")}: ${instance.library}\n`)
       .appendMarkdown(`- iASP: ${instance.iasp || '*SYSBAS'}`);
 
-    this.command = {
-      title: "",
-      command: "arcad-afs-for-ibm-i.show.server",
-      arguments: [this]
-    };
+    if (valid) {
+      this.command = {
+        title: "",
+        command: "arcad-afs-for-ibm-i.show.server",
+        arguments: [this]
+      };
+    }
   }
 
   show() {

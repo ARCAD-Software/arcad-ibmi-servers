@@ -60,9 +60,9 @@ export type InstallationProperties = Map<string, string>;
 
 export type ArcadInstance = {
   code:string
-  text:string  
-  version:string
+  text:string    
   library:string
+  version?:string
   iasp?:string
 };
 
