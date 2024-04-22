@@ -16,6 +16,7 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<ServerBrowserItem | undefined | null | void>;
   private readonly locations: ServerLocation[] = [];
   private readonly arcadInstancesNode = new ArcadInstancesItem();
+  private arcadExists : boolean | undefined;
   readonly onDidChangeTreeData = this.emitter.event;
 
   constructor() {
@@ -37,13 +38,21 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
     else {
       if (!this.locations.length) {
         await vscode.window.withProgress({
-          location: vscode.ProgressLocation.Notification,
+          location: vscode.ProgressLocation.Window,
           title: l10n.t("Loading ARCAD servers...")
         },
           async () => this.locations.push(...await findLocations()));
       }
 
-      const items: ServerBrowserItem[] = [this.arcadInstancesNode];
+      if(this.arcadExists === undefined){
+        this.arcadExists = await ArcadDAO.checkArcadExists();
+      }
+
+      const items: ServerBrowserItem[] = [];
+
+      if(this.arcadExists){
+        items.push(this.arcadInstancesNode);
+      }
 
       for (const location of this.locations) {
         switch (location.type) {
@@ -66,6 +75,7 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
   }
 
   reload() {
+    this.arcadExists = undefined;
     this.locations.splice(0, this.locations.length);
     this.arcadInstancesNode.reload();
     this.refresh();
@@ -108,7 +118,7 @@ class ArcadInstancesItem extends ServerBrowserItem {
   async getChildren() {
     if (!this.instances.length) {
       await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
+        location: vscode.ProgressLocation.Window,
         title: l10n.t("Loading ARCAD instances...")
       }, async () => this.instances.push(...await ArcadDAO.loadInstances()));
     }
