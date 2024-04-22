@@ -3,6 +3,10 @@ import { Code4i } from "../code4i";
 import { ArcadInstance, ArcadLicense } from "../types";
 
 export namespace ArcadDAO {
+  export async function checkArcadExists(){
+    return await Code4i.checkObject("ARCAD_SYS", "AARCINSF1", "*FILE");    
+  }
+
   export async function loadInstances() {
     const instanceRows = await Code4i.runSQL(
       `Select INS_JCODE, INS_CTXT, INS_JPRDL, INS_NASPNB ` +
