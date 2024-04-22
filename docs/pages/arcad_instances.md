@@ -1,4 +1,6 @@
 # ARCAD instances
+If ARCAD is installed on the LPAR, the ARCAD Instances node will be displayed in the browser.
+
 Every ARCAD instance found on the IBM i is listed under the ARCAD Instances node.
 
 ![arcad_instances](../assets/arcad_instances.png)
