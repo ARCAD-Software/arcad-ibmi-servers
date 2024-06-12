@@ -31,7 +31,7 @@ export namespace ArcadDAO {
         code,
         text: String(instance.INS_CTXT).trim(),
         library,
-        iasp: instance.INS_NASPNB && instance.INS_NASPNB !== '1' ? String(instance.INS_NASPNB).trim() : undefined,
+        iasp: instance.INS_NASPNB && instance.INS_NASPNB !== 1 ? String(instance.INS_NASPNB).trim() : undefined,
         version
       });
     }
