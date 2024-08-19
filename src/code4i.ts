@@ -3,13 +3,14 @@ import vscode, { l10n } from "vscode";
 
 let codeForIBMi: CodeForIBMi;
 export namespace Code4i {
-
-  export async function initialize() {
+  let subscribe : (event:IBMiEvent, name:string, func:Function) => void;
+  export async function initialize(context: vscode.ExtensionContext) {
     const codeForIBMiExtension = vscode.extensions.getExtension<CodeForIBMi>('halcyontechltd.code-for-ibmi');
     if (codeForIBMiExtension) {
       codeForIBMi = codeForIBMiExtension.isActive ? codeForIBMiExtension.exports : await codeForIBMiExtension.activate();
       console.log(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' is now active!"));
-      codeForIBMi.instance.onEvent("connected", checkJava);
+      subscribe = (event:IBMiEvent, name:string, func:Function) => codeForIBMi.instance.subscribe(context, event, name, func);
+      subscribe("connected", "Check Java version", checkJava);
     }
     else {
       throw new Error(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' requires the 'halcyontechltd.code-for-ibmi' extension to be active!"));
@@ -45,8 +46,8 @@ export namespace Code4i {
     return codeForIBMi.instance.getContent().checkObject({ library, name, type });
   }
 
-  export function onEvent(event: IBMiEvent, todo: Function) {
-    codeForIBMi.instance.onEvent(event, todo);
+  export function onEvent(event: IBMiEvent, name:string, todo: Function) {
+    subscribe(event, name, todo);
   }
 
   export function customUI() {

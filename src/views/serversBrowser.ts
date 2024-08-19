@@ -20,7 +20,7 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
   readonly onDidChangeTreeData = this.emitter.event;
 
   constructor() {
-    Code4i.onEvent("connected", () => this.reload());
+    Code4i.onEvent("connected", "Reload AFS Servers view", () => this.reload());
   }
 
   refresh(target?: ServerBrowserItem) {
