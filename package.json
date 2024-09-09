@@ -368,18 +368,18 @@
     "nls": "npx @vscode/l10n-dev export --outDir ./l10n ./src"
   },
   "devDependencies": {
-    "@halcyontech/vscode-ibmi-types": "^2.12",
+    "@halcyontech/vscode-ibmi-types": "^2.13",
     "@types/node": "18.x",
     "@types/vscode": "1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
-    "esbuild-loader": "^3.0.1",
+    "esbuild-loader": "^4.2.2",
     "rimraf": "^5",
     "typescript": "^5.2.2",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "webpack": "^5.94.0",
+		"webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "axios": "^1.7.4"
+    "axios": "^1.7.7"
   }
 }
