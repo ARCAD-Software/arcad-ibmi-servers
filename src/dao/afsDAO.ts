@@ -26,7 +26,7 @@ export namespace AFSServerDAO {
         javaHome: String(row.AFS_JAVA_HOME).trim(),
         jobName: String(row.AFS_JOBNAME).trim(),
         jobUser: String(row.AFS_JOBUSER).trim(),
-        jobNumber: String(row.AFS_JOBNUMBER).trim(),
+        jobNumber: String(row.AFS_JOBNUMBER).trim().padStart(6, '0'),
         running: Boolean(row.V_JOB_STATUS === '*ACTIVE'),
         jobStatus: row.V_ACTIVE_JOB_STATUS ? String(row.V_ACTIVE_JOB_STATUS).trim() : undefined,
         configuration: await loadConfiguration(String(row.AFS_IFSPATH).trim())
