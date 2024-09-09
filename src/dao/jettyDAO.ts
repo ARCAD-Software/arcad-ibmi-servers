@@ -19,7 +19,7 @@ export namespace JettyDAO {
       ),
       JOBINFO As (
         Select * From JETTYJOB 
-        Cross Join Table(QSYS2.GET_JOB_INFO(JOB_NUMBER || '/' || JOB_USER || '/' || JOB_NAME))
+        Cross Join Table(QSYS2.GET_JOB_INFO(JOB_NUMBER concat '/' concat JOB_USER concat '/' concat JOB_NAME))
       )
       Select * from JOBINFO`));
 

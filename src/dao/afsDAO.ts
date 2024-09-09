@@ -9,7 +9,7 @@ export namespace AFSServerDAO {
 
   export async function listServers(library: string) {
     const rows = (await Code4i.runSQL(`Select * From ${library}.AFSSERVERS ` +
-      `Cross Join Table(QSYS2.GET_JOB_INFO(AFS_JOBNUMBER || '/' || AFS_JOBUSER || '/' ||AFS_JOBNAME)) ` +
+      `Cross Join Table(QSYS2.GET_JOB_INFO(AFS_JOBNUMBER concat '/' concat AFS_JOBUSER concat '/' concat AFS_JOBNAME)) ` +
       `Order By AFS_NAME For fetch only`)
     );
 
