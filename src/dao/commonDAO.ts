@@ -1,5 +1,6 @@
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
+import { Configuration } from "../configuration";
 import { InstallationProperties } from "../types";
 
 export namespace CommonDAO {
@@ -64,5 +65,24 @@ export namespace CommonDAO {
       }
     });
     return props;
-  }  
+  }
+
+  export function postUpdateRestart(servernName: string, startFunction: Function) {
+    switch (Configuration.getPostUpdateAction()) {
+      case "Yes":
+        startFunction();
+        break;
+
+      case "Ask":
+        vscode.window.showInformationMessage(l10n.t("Do you want to restart {0} ?", servernName), l10n.t("Restart"))
+          .then(restart => {
+            if (restart) {
+              startFunction();
+            }
+          });
+        break;
+
+      default: //Do nothing
+    }
+  }
 }

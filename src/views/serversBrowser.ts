@@ -3,6 +3,7 @@ import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { AFSServerDAO } from "../dao/afsDAO";
 import { ArcadDAO } from "../dao/arcadDAO";
+import { CommonDAO } from "../dao/commonDAO";
 import { JettyDAO } from "../dao/jettyDAO";
 import { openEditAFSServerEditor } from "../editors/afs/edit";
 import { openInstallAFSEditor } from "../editors/afs/install";
@@ -16,7 +17,7 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
   private readonly emitter = new vscode.EventEmitter<ServerBrowserItem | undefined | null | void>;
   private readonly locations: ServerLocation[] = [];
   private readonly arcadInstancesNode = new ArcadInstancesItem();
-  private arcadExists : boolean | undefined;
+  private arcadExists: boolean | undefined;
   readonly onDidChangeTreeData = this.emitter.event;
 
   constructor() {
@@ -44,13 +45,13 @@ class AFSServerBrowser implements vscode.TreeDataProvider<ServerBrowserItem> {
           async () => this.locations.push(...await findLocations()));
       }
 
-      if(this.arcadExists === undefined){
+      if (this.arcadExists === undefined) {
         this.arcadExists = await ArcadDAO.checkArcadExists();
       }
 
       const items: ServerBrowserItem[] = [];
 
-      if(this.arcadExists){
+      if (this.arcadExists) {
         items.push(this.arcadInstancesNode);
       }
 
@@ -160,6 +161,8 @@ class ArcadInstanceItem extends ServerBrowserItem {
 }
 
 class JettyWrapperItem extends ServerBrowserItem {
+  public currentJob?: JettyJobItem;
+
   constructor(readonly location: ServerLocation) {
     super(location.library, { icon: { name: "globe" }, state: vscode.TreeItemCollapsibleState.Collapsed });
     this.contextValue = "jettywrapper";
@@ -167,8 +170,9 @@ class JettyWrapperItem extends ServerBrowserItem {
   }
 
   async getChildren() {
+    this.currentJob = new JettyJobItem(this, await JettyDAO.loadJettyServer(this.location));
     return [
-      new JettyJobItem(this, await JettyDAO.loadJettyServer(this.location))
+      this.currentJob
     ];
   }
 
@@ -553,6 +557,7 @@ async function updateServer(serverItem: AFSServerItem, installationPackage?: vsc
   installationPackage = installationPackage || await AFSServerDAO.selectInstallationPackage();
   if (installationPackage && installationPackage.path.toLowerCase().endsWith(".jar") && await AFSServerDAO.update(installationPackage, serverItem.server)) {
     serverItem.refresh();
+    CommonDAO.postUpdateRestart(serverItem.server.name, () => serverItem.start());
   }
 }
 
@@ -562,13 +567,24 @@ async function installWAR(jetty: JettyWrapperItem | JettyJobItem, warFiles?: vsc
     await vscode.window.showInformationMessage(l10n.t(`Do you really wish to install the following war files (Jetty will be stopped)?`),
       { detail: warFiles.map(f => `- ${basename(f.path)}`).join("\n"), modal: true },
       l10n.t("Proceed"))) {
+    let result;
+    let startFunction;
+    let name;
     if (jetty instanceof JettyWrapperItem) {
-      await JettyDAO.installWARFiles(jetty.location, warFiles);
+      result = await JettyDAO.installWARFiles(jetty.location, warFiles);
+      name = `Jetty (${jetty.location.library})`;
+      startFunction = () => jetty.currentJob?.start();
       jetty.refresh();
     }
     else if (jetty.parent instanceof JettyWrapperItem) {
-      await JettyDAO.installWARFiles(jetty.parent.location, warFiles);
+      result = await JettyDAO.installWARFiles(jetty.parent.location, warFiles);
+      name = `Jetty (${jetty.parent.location.library})`;
+      startFunction = () => jetty.start();
       jetty.parent.refresh();
+    }
+
+    if (result?.code === 0 && name && startFunction) {
+      CommonDAO.postUpdateRestart(name, startFunction);
     }
   }
 }

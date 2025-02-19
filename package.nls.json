@@ -14,11 +14,15 @@
   "open.http.config": "HTTP",
   "open.https.config": "HTTPS",
   "open.logs": "Open logs",
+  "open.online.help": "Open online help",
   "refresh": "Refresh",
   "reload": "Reload available installations",
+  "restart.ask": "Show a dialog giving the option to restart servers after an update",
+  "restart.no": "Never restart servers after an update",
+  "restart.yes": "Always restart servers after an update",
+  "restartAfterUpdate": "Defines if a server must be restarted after it has been updated",
   "show": "Show server information",
   "start": "Start",
   "stop": "Stop",
-  "update": "Update",
-  "open.online.help":"Open online help"
+  "update": "Update"
 }
