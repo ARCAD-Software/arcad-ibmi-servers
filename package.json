@@ -3,7 +3,7 @@
   "publisher": "arcadsoftware",
   "displayName": "ARCAD-IBM i Servers Manager",
   "description": "This extension lets you manage your ARCAD Servers (ARCAD instances, AFS servers and Jetty) installed on IBM i. Powered by Code for IBM i.",
-  "version": "1.1.9-dev.0",
+  "version": "1.1.9",
   "repository": {
     "type": "git",
     "url": "https://github.com/ARCAD-Software/arcad-ibmi-servers"
@@ -40,21 +40,21 @@
       {
         "title": "ARCAD-Servers Manager",
         "properties": {
-          "arcadServers.restartAfterUpdate":{
+          "arcadServers.restartAfterUpdate": {
             "type": "string",
-						"enum": [
-							"Yes",
-							"No",
-							"Ask"
-						],
-						"enumDescriptions": [
-							"%restart.yes%",
-							"%restart.no%",
-							"%restart.ask%"
-						],
-						"description": "%restartAfterUpdate%",
-						"default": "Ask",
-						"order": 10
+            "enum": [
+              "Yes",
+              "No",
+              "Ask"
+            ],
+            "enumDescriptions": [
+              "%restart.yes%",
+              "%restart.no%",
+              "%restart.ask%"
+            ],
+            "description": "%restartAfterUpdate%",
+            "default": "Ask",
+            "order": 10
           }
         }
       }
@@ -399,7 +399,7 @@
     "rimraf": "^5",
     "typescript": "^5.2.2",
     "webpack": "^5.98.0",
-		"webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "axios": "^1.7.9"
