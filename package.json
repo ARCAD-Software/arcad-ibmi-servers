@@ -36,7 +36,29 @@
   "main": "./dist/extension.js",
   "l10n": "./l10n",
   "contributes": {
-    "configuration": [],
+    "configuration": [
+      {
+        "title": "ARCAD-Servers Manager",
+        "properties": {
+          "arcadServers.restartAfterUpdate":{
+            "type": "string",
+						"enum": [
+							"Yes",
+							"No",
+							"Ask"
+						],
+						"enumDescriptions": [
+							"%restart.yes%",
+							"%restart.no%",
+							"%restart.ask%"
+						],
+						"description": "%restartAfterUpdate%",
+						"default": "Ask",
+						"order": 10
+          }
+        }
+      }
+    ],
     "commands": [
       {
         "command": "arcad-afs-for-ibm-i.refresh",
