@@ -1,4 +1,5 @@
 import { CodeForIBMi, IBMiEvent, OpenEditableOptions } from "@halcyontech/vscode-ibmi-types";
+import Crypto from "crypto";
 import vscode, { l10n } from "vscode";
 
 let codeForIBMi: CodeForIBMi;
@@ -55,7 +56,7 @@ export namespace Code4i {
   }
 
   export function makeId() {
-    return codeForIBMi.tools.makeid();
+    return Crypto.randomUUID();
   }
 
   export function open(path: string, options?: OpenEditableOptions) {
