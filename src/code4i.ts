@@ -1,4 +1,4 @@
-import { CodeForIBMi, IBMiEvent, OpenEditableOptions } from "@halcyontech/vscode-ibmi-types";
+import { CodeForIBMi, IBMiEvent, QsysFsOptions } from "@halcyontech/vscode-ibmi-types";
 import Crypto from "crypto";
 import vscode, { l10n } from "vscode";
 
@@ -32,7 +32,7 @@ export namespace Code4i {
   }
 
   export async function runSQL(statement: string) {
-    return await codeForIBMi.instance.getContent().runSQL(`${statement.endsWith(';') ? statement : statement + ";"}`);
+    return await getConnection().runSQL(`${statement.endsWith(';') ? statement : statement + ";"}`);
   }
 
   export function getConnection() {
@@ -59,7 +59,7 @@ export namespace Code4i {
     return Crypto.randomUUID();
   }
 
-  export function open(path: string, options?: OpenEditableOptions) {
+  export function open(path: string, options?: QsysFsOptions) {
     vscode.commands.executeCommand("code-for-ibmi.openEditable", path, options);
   }
 

@@ -31,11 +31,11 @@ export namespace CommonDAO {
 
   export async function install(title: string, installationPackage: vscode.Uri, properties: InstallationProperties, installpathProperty: string) {
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title, cancellable: false }, async progress => {
-      return CommonDAO.withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      return CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/${Code4i.makeId()}`, async workDirectory => {
         progress.report({ message: l10n.t("uploading installation package"), increment: 33 });
         const setupFile = `${workDirectory}/setup.jar`;
         try {
-          await Code4i.getConnection().uploadFiles([{ local: installationPackage, remote: setupFile }]);
+          await Code4i.getConnection().getContent().uploadFiles([{ local: installationPackage, remote: setupFile }]);
         }
         catch (error: any) {
           vscode.window.showErrorMessage(l10n.t("Failed to upload installation package: {0}", error));

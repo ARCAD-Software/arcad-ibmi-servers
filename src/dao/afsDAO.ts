@@ -160,7 +160,7 @@ export namespace AFSServerDAO {
   export async function clearConfiguration(server: AFSServer) {
     return await vscode.window.withProgress({ title: l10n.t("Clearing {0} configuration area...", server.name), location: vscode.ProgressLocation.Notification }, async () => {
       const configurationDirectory = `${server.ifsPath}/configuration`;
-      return CommonDAO.withTempDirectory(`${Code4i.getConnection().config?.tempDir}/arcadserver_${server.name}`, async tempDirectory => {
+      return CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/arcadserver_${server.name}`, async tempDirectory => {
         const clearCommand = [
           `mv ${CONFIG_FILES.map(f => `${configurationDirectory}/${f}`).join(" ")} ${tempDirectory}`,
           `rm -rf ${configurationDirectory}/*`,
@@ -199,11 +199,11 @@ export namespace AFSServerDAO {
 
   export async function update(installationPackage: vscode.Uri, server: AFSServer) {
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Updating ARCAD server {0}", server.name), cancellable: false }, async progress => {
-      return CommonDAO.withTempDirectory(`${Code4i.getConnection().config?.tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      return CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/${Code4i.makeId()}`, async workDirectory => {
         progress.report({ message: l10n.t("uploading installation package"), increment: 25 });
         const setupFile = `${workDirectory}/setup.jar`;
         try {
-          await Code4i.getConnection().uploadFiles([{ local: installationPackage, remote: setupFile }]);
+          await Code4i.getConnection().getContent().uploadFiles([{ local: installationPackage, remote: setupFile }]);
         }
         catch (error: any) {
           vscode.window.showErrorMessage(l10n.t("Failed to upload installation package: {0}", error));

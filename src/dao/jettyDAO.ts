@@ -102,7 +102,7 @@ export namespace JettyDAO {
         task.report({ message: l10n.t("uploading files"), increment: 20 });
         try {
           const remoteLocation = `${ifsPath}/webapps`;
-          await Code4i.getConnection().uploadFiles(warFiles.map(local => ({ local, remote: `${remoteLocation}/${basename(local.path)}` })));
+          await Code4i.getConnection().getContent().uploadFiles(warFiles.map(local => ({ local, remote: `${remoteLocation}/${basename(local.path)}` })));
         }
         catch (error: any) {
           result.code = -1;
