@@ -132,7 +132,7 @@ export namespace AFSServerDAO {
       command.push(`IFSPATH('${payload.ifsPath}')`);
     }
     if (payload.javaHome !== server.javaHome) {
-      command.push(`JAVAHOME('${payload.javaHome})'`);
+      command.push(`JAVAHOME('${payload.javaHome}')`);
     }
     if (payload.javaProps !== server.javaProps) {
       command.push(`PROPS('${payload.javaProps}${payload.javaProps && payload.javaProps.endsWith(';') ? '' : ';'}')`);
