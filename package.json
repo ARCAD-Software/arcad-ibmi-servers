@@ -382,10 +382,9 @@
     }
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "build": "npm run clean && webpack --mode development",
-    "watch": "npm run clean && webpack --mode development --watch",
-    "vscode:prepublish": "npm run clean && webpack --mode production --devtool hidden-source-map",
+    "build": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "vscode:prepublish": "webpack --mode production --devtool hidden-source-map",
     "package": "vsce package --pre-release",
     "nls": "npx @vscode/l10n-dev export --outDir ./l10n ./src"
   },
@@ -396,7 +395,6 @@
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
     "esbuild-loader": "^4.2.3",
-    "rimraf": "^5",
     "typescript": "^5.2.2",
     "webpack": "^5.98.0",
     "webpack-cli": "^6.0.1"
