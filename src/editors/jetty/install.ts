@@ -15,6 +15,7 @@ export async function openInstallJettyEditor(installationPackage: vscode.Uri) {
     .addInput("jetty.user", l10n.t("Job user"), l10n.t("The user that will run the server's job. Leave blank to use package's default value."), { minlength: 1, maxlength: 10 })
     .addInput("install.iasp", l10n.t("Library iASP"), l10n.t("If the Jetty library is located in an iASP, specify it here. Leave blank to use *SYSBAS."), { maxlength: 10 })
     .addInput("jetty.port", l10n.t("HTTP port"), l10n.t("The server HTTP port, between 1 and 65535. Leave blank to disable HTTP."), { maxlength: 5, regexTest: `^\\d*$` })
+    .addCheckbox("ibmi.secure", l10n.t("Use secure JTOpen connection"), l10n.t("If <code>enabled</code>, the local JTOpen connection opened by the installer will use TLS."))
     .addButtons(
       { id: 'install', label: l10n.t("Install"), requiresValidation: true }
     )

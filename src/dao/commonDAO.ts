@@ -59,9 +59,22 @@ export namespace CommonDAO {
 
   export function toInstallerProperties(data: any) {
     const props = new Map<string, string>();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value) {
-        props.set(key, String(value));
+    props.set("ibmi.secure", "n");
+    Object.entries(data).forEach(([key, rawValue]) => {
+      if (rawValue) {
+        let value;
+        switch (typeof rawValue) {
+          case "string":
+            value = rawValue;
+            break;
+          case "boolean":
+            value = rawValue ? "y" : "n";
+            break;
+
+          default:
+            value = String(rawValue);
+        }
+        props.set(key, value);
       }
     });
     return props;

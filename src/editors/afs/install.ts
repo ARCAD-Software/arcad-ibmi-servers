@@ -15,6 +15,7 @@ export async function openInstallAFSEditor(location?: string, installationPackag
       .addInput("afs.http.port", l10n.t("HTTP port"), l10n.t("The server HTTP port, between 1 and 65535. Leave blank to use package's default value."), { maxlength: 5, regexTest: `^\\d*$` })
       .addInput("arcad.jobq", l10n.t("Job queue"), l10n.t("The job queue where the server's job is submitted. Leave blank to use package's default value."), { maxlength: 10 })
       .addInput("arcad.jobq.library", l10n.t("Job queue library"), l10n.t("The above job queue library. Leave blank to use package's default value."), { maxlength: 10 })
+      .addCheckbox("ibmi.secure", l10n.t("Use secure JTOpen connection"), l10n.t("If <code>enabled</code>, the local JTOpen connection opened by the installer will use TLS."))
       .addButtons(
         { id: 'install', label: l10n.t("Install"), requiresValidation: true }
       )
