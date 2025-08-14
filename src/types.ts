@@ -1,3 +1,5 @@
+import vscode from "vscode";
+
 export type ServerLocation = {
   library: string
   dataArea: string
@@ -40,8 +42,8 @@ export type JettyServer = {
 };
 
 export type JettyConfiguration = {
-  httpsPort?:number
-  keystore?:string
+  httpsPort?: number
+  keystore?: string
   httpPort?: number
 };
 
@@ -59,11 +61,11 @@ export type AFSServerUpdate = {
 export type InstallationProperties = Map<string, string>;
 
 export type ArcadInstance = {
-  code:string
-  text:string    
-  library:string
-  version?:string
-  iasp?:string
+  code: string
+  text: string
+  library: string
+  version?: string
+  iasp?: string
 };
 
 export type ArcadLicense = {
@@ -73,4 +75,13 @@ export type ArcadLicense = {
   type: "T" | "D"
   limit: string
   warning: string
+};
+
+export type ArcadPackage = {
+  type: "master" | "cumulative",
+  version: string,
+  fromVersion?: string
+  zip?: vscode.Uri,
+  arcinst: vscode.Uri | string,
+  package: vscode.Uri | string
 };
