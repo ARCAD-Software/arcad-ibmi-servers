@@ -390,6 +390,7 @@
   },
   "devDependencies": {
     "@halcyontech/vscode-ibmi-types": "^2.16",
+    "@types/adm-zip": "^0.5.7",
     "@types/node": "18.x",
     "@types/vscode": "1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
@@ -400,6 +401,7 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
+    "adm-zip": "^0.5.16",
     "axios": "^1.11"
   }
 }
