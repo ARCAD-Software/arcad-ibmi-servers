@@ -154,6 +154,7 @@ export namespace ArcadDAO {
               else {
                 const openOutput = (open?: string) => open ? CommonDAO.openJobLog(update) : undefined;
                 if (update.successful) {
+                  Code4i.runCommand(`SBMJOB JOB(ARC${instance.code}) JOBD(${instance.library}/AMSGCMDE) USER(*JOBD) RQSDTA(*JOBD)`);
                   vscode.window.showInformationMessage(l10n.t("ARCAD instance {0} successfully updated to {1}.", instance.code, arcadPackage.version), l10n.t("Open output"))
                     .then(openOutput);
                   return true;
