@@ -5,6 +5,37 @@ Every ARCAD instance found on the IBM i is listed under the ARCAD Instances node
 
 ![arcad_instances](../assets/arcad_instances.png)
 
+## Install
+1. Click on the `Install` button in the `ARCAD Servers` browser and select `ARCAD instance`.
+![install arcad](../assets/install_arcad.png)
+![arcad instance](../assets/install_arcad2.png)
+
+2. Select an installation package: it must be a zip file or a folder containing the `ARCINST.DTA` and a `MSTARC xxx .dta` files. To select a folder, just pick one of the `.dta` file in it.
+![install content](../assets/arcad_install_content.png)
+
+3. A prompt will open to ask for the installation settings.
+![install settings](../assets/arcad_install_settings.png)
+
+4. Click on `Install` to start the installation process in the back. 
+
+The process will upload the installation package in a temporary IFS location and then submit the installation command. The submitted job will be monitored until its ends.
+
+Once the installation job has ended, a notification will show up to display the result and to open the installation job's log.
+
+## Update
+1. Right click on an existing ARCAD instance and select `Update`
+
+![update arcad](../assets/arcad_update.png)
+
+2. Select an update package: it must be a zip file or a folder containing the `ARCINST.DTA` and a `CUMARC xxx .dta` files. To select a folder, just pick one of the `.dta` file in it.
+![update package](../assets/arcad_update_package.png)
+
+3. A dialog will show up to confirm the start of the update process. It will also warn if there's a version mismatch.
+
+The process will upload the update package in a temporary IFS location and then submit the update command. The submitted job will be monitored until its ends.
+
+Once the update job has ended, a notification will show up to display the result and offer to open the update job's log.
+
 ## Instance details and licenses
 Clicking on an instance will open a read-only editor displaying the instance's details as well as its licenses.
 
