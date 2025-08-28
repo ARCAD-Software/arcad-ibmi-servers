@@ -126,6 +126,11 @@
         "category": "ARCAD Servers"
       },
       {
+        "command": "arcad-afs-for-ibm-i.patch.arcad.instance",
+        "title": "%patch%",
+        "category": "ARCAD Servers"
+      },
+      {
         "command": "arcad-afs-for-ibm-i.clear.configuration.server",
         "title": "%clear.configuration%",
         "category": "ARCAD Servers"
@@ -253,6 +258,10 @@
           "when": "never"
         },
         {
+          "command": "arcad-afs-for-ibm-i.patch.arcad.instance",
+          "when": "never"
+        },
+        {
           "command": "arcad-afs-for-ibm-i.clear.configuration.server",
           "when": "never"
         },
@@ -343,9 +352,14 @@
           "group": "02_afsserveractions@01"
         },
         {
+          "command": "arcad-afs-for-ibm-i.patch.arcad.instance",
+          "when": "view == afsServerBrowser && viewItem === arcadinstance",
+          "group": "03_afsserveractions@01"
+        },
+        {
           "command": "arcad-afs-for-ibm-i.update.arcad.instance",
           "when": "view == afsServerBrowser && viewItem === arcadinstance",
-          "group": "03_afsserveractions@02"
+          "group": "04_afsserveractions@01"
         },
         {
           "command": "arcad-afs-for-ibm-i.open.logs.server",

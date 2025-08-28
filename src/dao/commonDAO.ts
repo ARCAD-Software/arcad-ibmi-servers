@@ -1,8 +1,9 @@
 import AdmZip from "adm-zip";
+import { basename } from "path/posix";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../code4i";
 import { Configuration } from "../configuration";
-import { ArcadPackage, InstallationProperties } from "../types";
+import { ArcadPackage, ArcadPatch, InstallationProperties } from "../types";
 
 type Job = {
   job: string
@@ -95,6 +96,28 @@ export namespace CommonDAO {
     return undefined;
   }
 
+  export async function selectArcadPatches(title: string): Promise<ArcadPatch[] | undefined> {
+    const selected = (await vscode.window.showOpenDialog({
+      canSelectMany: true,
+      filters: { 'ARCAD patch': ['savf', 'file'] },
+      title
+    }));
+
+    if (selected) {
+      const bad = selected.filter(patch => basename(patch.path).lastIndexOf(".") > 10);
+      if (!bad.length) {
+        return selected.map(uri => ({
+          file: uri,
+          name: basename(uri.path).substring(0, basename(uri.path).lastIndexOf(".")).toLocaleUpperCase()
+        }))
+          .sort((p1, p2) => p1.name.localeCompare(p2.name));
+      }
+      else {
+        vscode.window.showErrorMessage(l10n.t("Wrong selection: the following files don't have a valid patch name"), { modal: true, detail: bad.join("\n") });
+      }
+    }
+  }
+
   export async function withTempDirectory(directory: string, process: (directory: string) => Promise<boolean>) {
     const prepareDirectory = await Code4i.runShellCommand(`rm -rf ${directory} && mkdir -p ${directory}`);
     if (prepareDirectory.code === 0) {
@@ -181,8 +204,8 @@ export namespace CommonDAO {
     }
   }
 
-  export async function submitAndWait(jobName: string, command: string, iasp?: string) {
-    const submitResult = await Code4i.getConnection().runCommand({ command: `SBMJOB JOB(${jobName}) SYSLIBL(*SYSVAL) CURLIB(*USRPRF) INLLIBL(*JOBD) CMD(${command}) INLASPGRP(${iasp || "*CURRENT"})`, noLibList: true });
+  export async function submitAndWait(jobName: string, command: string, iasp?: string, library?: string) {
+    const submitResult = await Code4i.getConnection().runCommand({ command: `SBMJOB JOB(${jobName}) SYSLIBL(*SYSVAL) CURLIB(*USRPRF) INLLIBL(${library || '*JOBD'}) CMD(${command}) INLASPGRP(${iasp || "*CURRENT"})`, noLibList: true });
     if (submitResult.code === 0) {
       const submitMessage = Code4i.tools().parseMessages(submitResult.stderr || submitResult.stdout).findId("CPC1221")?.text;
       if (submitMessage) {
@@ -218,7 +241,7 @@ export namespace CommonDAO {
                 break;
 
               default: //JOBQ or UNKNOWN
-                done = (tries-- > 0);
+                done = (tries === 0);
             }
 
             if (!done) {
@@ -231,6 +254,10 @@ export namespace CommonDAO {
             targetJob.successful = String(row.COMPLETION_STATUS) === "NORMAL";
             targetJob.severity = Number(row.JOB_END_SEVERITY);
             targetJob.endReason = String(row.JOB_END_REASON);
+          }
+          else {
+            //No trace of the job: we assume it was successful
+            targetJob.successful = true;
           }
           return targetJob;
         }

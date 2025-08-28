@@ -85,3 +85,8 @@ export type ArcadPackage = {
   arcinst: vscode.Uri | string,
   package: vscode.Uri | string
 };
+
+export type ArcadPatch = {
+  file: vscode.Uri
+  name: string
+};

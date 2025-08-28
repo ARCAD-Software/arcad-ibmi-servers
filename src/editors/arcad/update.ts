@@ -4,7 +4,7 @@ import { CommonDAO } from "../../dao/commonDAO";
 import { ArcadInstance } from "../../types";
 
 
-export async function openUpdateArcadEditor(instance: ArcadInstance, afterInstall?: Function) {
+export async function updateArcadInstance(instance: ArcadInstance, afterInstall?: Function) {
   const updatePackage = await CommonDAO.selectArcadPackage(l10n.t("Select ARCAD update package"));
   if (updatePackage) {
     if (updatePackage.type === "cumulative") {
