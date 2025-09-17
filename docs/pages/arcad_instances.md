@@ -18,7 +18,7 @@ Every ARCAD instance found on the IBM i is listed under the ARCAD Instances node
 
 4. Click on `Install` to start the installation process in the back. 
 
-The process will upload the installation package in a temporary IFS location and then submit the installation command. The submitted job will be monitored until its ends.
+The process will upload the installation package in a temporary IFS location and then submit the installation command. The submitted job will be monitored until it ends.
 
 Once the installation job has ended, a notification will show up to display the result and to open the installation job's log.
 
@@ -32,10 +32,24 @@ Once the installation job has ended, a notification will show up to display the 
 
 3. A dialog will show up to confirm the start of the update process. It will also warn if there's a version mismatch.
 
-The process will upload the update package in a temporary IFS location and then submit the update command. The submitted job will be monitored until its ends.
+The process will upload the update package in a temporary IFS location and then submit the update command. The submitted job will be monitored until it ends.
 
 Once the update job has ended, a notification will show up to display the result and offer to open the update job's log.
 
+## Patch
+1. Right click on an existing ARCAD instance and select `Apply patch(es)...`
+
+![patch arcad](../assets/arcad_patch.png)
+
+2. Select one or more patch packages; they must be files with the `.file` or `.savf` extension.
+
+![patch file](../assets/patch_file.png)
+
+3. A dialog will show up to confirm the start of the patching process. It will list the selected packages.
+   
+The process will upload the patches in a temporary IFS location and then submit each patch command one after the other. Each submitted job will be monitored until it ends.
+
+Once every patch job has ended, a notification will show up to display the result and offer to open the jobs' log.
 ## Instance details and licenses
 Clicking on an instance will open a read-only editor displaying the instance's details as well as its licenses.
 
