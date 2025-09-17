@@ -4,13 +4,13 @@ import vscode, { l10n } from "vscode";
 
 let codeForIBMi: CodeForIBMi;
 export namespace Code4i {
-  let subscribe : (event:IBMiEvent, name:string, func:Function) => void;
+  let subscribe: (event: IBMiEvent, name: string, func: Function) => void;
   export async function initialize(context: vscode.ExtensionContext) {
     const codeForIBMiExtension = vscode.extensions.getExtension<CodeForIBMi>('halcyontechltd.code-for-ibmi');
     if (codeForIBMiExtension) {
       codeForIBMi = codeForIBMiExtension.isActive ? codeForIBMiExtension.exports : await codeForIBMiExtension.activate();
       console.log(vscode.l10n.t("The extension 'arcad-afs-for-ibm-i' is now active!"));
-      subscribe = (event:IBMiEvent, name:string, func:Function) => codeForIBMi.instance.subscribe(context, event, name, func);
+      subscribe = (event: IBMiEvent, name: string, func: Function) => codeForIBMi.instance.subscribe(context, event, name, func);
       subscribe("connected", "Check Java version", checkJava);
     }
     else {
@@ -40,19 +40,23 @@ export namespace Code4i {
   }
 
   export function listFiles(folder: string) {
-    return codeForIBMi.instance.getContent().getFileList(folder);
+    return getConnection().getContent().getFileList(folder);
   }
 
   export async function checkObject(library: string, name: string, type: string) {
-    return codeForIBMi.instance.getContent().checkObject({ library, name, type });
+    return getConnection().getContent().checkObject({ library, name, type });
   }
 
-  export function onEvent(event: IBMiEvent, name:string, todo: Function) {
+  export function onEvent(event: IBMiEvent, name: string, todo: Function) {
     subscribe(event, name, todo);
   }
 
   export function customUI() {
     return codeForIBMi.customUI();
+  }
+
+  export function tools() {
+    return codeForIBMi.tools;
   }
 
   export function makeId() {

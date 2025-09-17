@@ -8,7 +8,10 @@ import { JettyDAO } from "../dao/jettyDAO";
 import { openEditAFSServerEditor } from "../editors/afs/edit";
 import { openInstallAFSEditor } from "../editors/afs/install";
 import { openShowAFSServerEditor } from "../editors/afs/show";
+import { openInstallArcadEditor } from "../editors/arcad/install";
+import { patchArcadInstance } from "../editors/arcad/patch";
 import { openShowArcadInstanceEditor } from "../editors/arcad/show";
+import { updateArcadInstance } from "../editors/arcad/update";
 import { openInstallJettyEditor } from "../editors/jetty/install";
 import { openShowJettyServerEditor } from "../editors/jetty/show";
 import { AFSServer, ArcadInstance, JettyServer, ServerLocation } from "../types";
@@ -499,7 +502,9 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.install.war", installWAR),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.browser", (node: JettyJobItem) => node.openBrowser()),
     vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.config.http", (node: JettyWrapperItem) => JettyDAO.openConfigurationFile(node.location, "http.ini")),
-    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.config.https", (node: JettyWrapperItem) => JettyDAO.openConfigurationFile(node.location, "https.ini"))
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.open.config.https", (node: JettyWrapperItem) => JettyDAO.openConfigurationFile(node.location, "https.ini")),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.update.arcad.instance", (node: ArcadInstanceItem) => updateArcadInstance(node.instance, () => node.parent?.refresh())),
+    vscode.commands.registerCommand("arcad-afs-for-ibm-i.patch.arcad.instance", (node: ArcadInstanceItem) => patchArcadInstance(node.instance))
   );
 }
 
@@ -533,6 +538,7 @@ function getJettyServerIcon(server: JettyServer): Icon {
 
 async function install() {
   const selected = (await vscode.window.showQuickPick([
+    { label: "ARCAD", description: l10n.t("ARCAD instance") },
     { label: "AFS Server", description: l10n.t("AFS framework based server") },
     { label: "Jetty", description: l10n.t("Jetty web server") }
   ]))?.label;
@@ -543,10 +549,17 @@ async function install() {
         vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload");
       }
     }
+    else if (selected === "ARCAD") {
+      installArcad();
+    }
     else {
       installServer();
     }
   }
+}
+
+async function installArcad() {
+  await openInstallArcadEditor(() => vscode.commands.executeCommand("arcad-afs-for-ibm-i.reload"));
 }
 
 async function installServer(wrapper?: AFSWrapperItem, installationPackage?: vscode.Uri) {

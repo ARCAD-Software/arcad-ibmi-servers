@@ -15,6 +15,7 @@
   "open.https.config": "HTTPS",
   "open.logs": "Open logs",
   "open.online.help": "Open online help",
+  "patch": "Apply patch(es)...",
   "refresh": "Refresh",
   "reload": "Reload available installations",
   "restart.ask": "Show a dialog giving the option to restart servers after an update",
@@ -24,5 +25,5 @@
   "show": "Show server information",
   "start": "Start",
   "stop": "Stop",
-  "update": "Update"
+  "update": "Update..."
 }
