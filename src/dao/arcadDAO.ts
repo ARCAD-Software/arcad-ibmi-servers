@@ -124,12 +124,14 @@ export namespace ArcadDAO {
           }
         }
         finally {
+          progress.report({message:l10n.t("Clearing temporary install libraries")});
           await Promise.all([
             connection.runCommand({ command: "DLTLIB LIB(ARCINST)", noLibList: true }),
             connection.runCommand({ command: "DLTLIB LIB(ARCCUMLIB2)", noLibList: true }),
             connection.runCommand({ command: "DLTLIB LIB(ARCCUMLIB4)", noLibList: true })
           ]);
         }
+        
         return false;
       })
     );
@@ -176,6 +178,7 @@ export namespace ArcadDAO {
           }
         }
         finally {
+          progress.report({message:l10n.t("Clearing temporary update libraries")});
           await Promise.all([
             connection.runCommand({ command: "DLTLIB LIB(ARCINST)", noLibList: true }),
             connection.runCommand({ command: "DLTLIB LIB(ARCCUMLIB2)", noLibList: true }),
