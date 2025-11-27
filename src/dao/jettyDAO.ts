@@ -8,7 +8,7 @@ export namespace JettyDAO {
   export async function loadJettyServer(location: ServerLocation | JettyServer): Promise<JettyServer> {
     const library = location.library;
     const ifsPath = "dataArea" in location ? location.dataArea : location.ifsPath;
-    const configuration = await loadConfiguration(ifsPath);
+    const configuration = await loadConfiguration(await getBase(ifsPath));
     if (await Code4i.checkObject(library, 'JETTY_PID', '*DTAARA')) {
       const [jettyJob] = (await Code4i.runSQL(
         `With JETTYJOB As (
@@ -73,15 +73,15 @@ export namespace JettyDAO {
   export async function startServer(server: JettyServer) {
     let result;
     const jettySBSD = await loadJettySBSD(server);
-    if(jettySBSD){
+    if (jettySBSD) {
       result = await Code4i.runCommand(`STRSBS SBSD(${server.library}/${jettySBSD})`);
       server = await loadJettyServer(server);
     }
 
-    if(!result || !server.running){
+    if (!result || !server.running) {
       result = await Code4i.runCommand(`STRJTYSVR`, server.library);
     }
-    
+
     return result;
   }
 
@@ -90,11 +90,11 @@ export namespace JettyDAO {
   }
 
   export async function clearLogs(server: ServerLocation) {
-    return await Code4i.runShellCommand(`rm -rf ${server.dataArea}/logs/*`);
+    return await Code4i.runShellCommand(`rm -rf ${await getBase(server)}/logs/*`);
   }
 
   export async function installWARFiles(location: ServerLocation, warFiles: vscode.Uri[]) {
-    const ifsPath = location.dataArea;
+    const ifsPath = await getBase(location);
     return await vscode.window.withProgress({ title: l10n.t("Installing war files"), location: vscode.ProgressLocation.Notification }, async (task) => {
       task.report({ message: l10n.t("stopping"), increment: 20 });
       let result = await stopServer(location);
@@ -150,40 +150,51 @@ export namespace JettyDAO {
     return CommonDAO.install(l10n.t("Installing new Jetty web server"), installationPackage, properties, "install.directory");
   }
 
-  export async function deleteServer(location: ServerLocation){
+  export async function deleteServer(location: ServerLocation) {
     const server = await loadJettyServer(location);
     const jettySubsystem = await loadJettySBSD(location);
-    if(server.running){
+    if (server.running) {
       let serverStopped;
-      if(server.subsystem === jettySubsystem){
+      if (server.subsystem === jettySubsystem) {
         serverStopped = await Code4i.runCommand(`ENDSBS SBS(${jettySubsystem}) OPTION(*IMMED)`);
       }
-      else{
+      else {
         serverStopped = await stopServer(server);
       }
 
-      if(serverStopped.code !== 0){
+      if (serverStopped.code !== 0) {
         throw new Error(l10n.t("Could not stop Jetty Server {0}: {1}", server.library, serverStopped.stderr));
       }
     }
 
     const deleteIFS = await Code4i.runShellCommand(`rm -rf ${server.ifsPath}`);
-    if(deleteIFS.code === 0){
+    if (deleteIFS.code === 0) {
       const deleteLibrary = await Code4i.runCommand(`DLTLIB LIB(${server.library})`);
-      if(deleteLibrary.code !== 0){
-        throw new Error(l10n.t("Could not delete Jetty Server {0} library: {1}", server.library, deleteLibrary.stderr));  
+      if (deleteLibrary.code !== 0) {
+        throw new Error(l10n.t("Could not delete Jetty Server {0} library: {1}", server.library, deleteLibrary.stderr));
       }
     }
-    else{
+    else {
       throw new Error(l10n.t("Could not delete Jetty Server {0} IFS folder {1}: {2}", server.library, server.ifsPath, deleteIFS.stderr));
     }
   }
 
-  async function loadJettySBSD(location : ServerLocation | JettyServer){
+  async function loadJettySBSD(location: ServerLocation | JettyServer) {
     return (await Code4i.runSQL(`Select OBJNAME From Table(QSYS2.OBJECT_STATISTICS('${location.library}','*SBSD','*ALL')) Fetch first row only`))?.[0].OBJNAME;
   }
 
   async function openFile(server: ServerLocation, relativePath: string, readonly?: boolean) {
-    Code4i.open(`${server.dataArea}/${relativePath}`, { readonly });
+    Code4i.open(`${await getBase(server)}/${relativePath}`, { readonly });
+  }
+
+  export async function getBase(server: ServerLocation | string) {
+    const root = typeof server === "string" ? server : server.dataArea;
+    const java17Base = `${root}/base`;
+    if (await Code4i.getConnection().getContent().testStreamFile(java17Base, "d")) {
+      return java17Base;
+    }
+    else {
+      return root;
+    }
   }
 }

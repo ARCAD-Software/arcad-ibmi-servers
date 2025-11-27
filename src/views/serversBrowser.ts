@@ -482,7 +482,7 @@ export function initializeAFSBrowser(context: vscode.ExtensionContext) {
       }
       else {
         const selected = (await vscode.window.showQuickPick(
-          ((await Code4i.listFiles(`${serverItem.location.dataArea}/logs`))
+          ((await Code4i.listFiles(`${await JettyDAO.getBase(serverItem.location)}/logs`))
             .filter(f => f.name.toLocaleLowerCase().endsWith('.log'))
             .sort((f1, f2) => f2.modified && f1.modified ? f2.modified?.getTime() - f1.modified?.getTime() : f2.name.localeCompare(f1.name))
             .map(f => ({ label: f.name })))
