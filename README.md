@@ -3,9 +3,12 @@ instead, Send an email to [support](support-eu@arcadsoftware.com) or use the ARC
 [Support portal](https://akuiteo.arcadsoftware.com/akuiteo.clients/login/login.html)
 
 3 issues where moved to the support : 
-Issue #28 --> TFR113047	GitHub -Server Stop Process error 
+Issue #28 --> TFR113047	GitHub -Server Stop Process error
+
 Issue #39 --> TFR113046	GitHub -View Build Jobs - enhancement
+
 Issue #40 --> TFR113045	GitHub -Transfer Log Display - Enhancement
+
 
 
 # ARCAD-IBM i Servers Manager VSCode extension
