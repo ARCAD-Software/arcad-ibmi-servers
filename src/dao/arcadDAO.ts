@@ -86,7 +86,7 @@ export namespace ArcadDAO {
   export async function install(arcadPackage: ArcadPackage, parms: Map<string, string>) {
     const instance = String(parms.get("INSTANCE"));
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t(`Installing ARCAD {0} instance {1}`, arcadPackage.version, instance), cancellable: false },
-      async progress => await CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      async progress => await CommonDAO.withTempDirectory(await Code4i.makeWorkDirectory(), async workDirectory => {
         const connection = Code4i.getConnection();
         try {
           const restored = await uploadAndRestorePackage(arcadPackage, workDirectory, progress);
@@ -139,7 +139,7 @@ export namespace ArcadDAO {
 
   export async function update(arcadPackage: ArcadPackage, instance: ArcadInstance) {
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t(`Updating ARCAD instance {0} to {1}`, instance.code, arcadPackage.version), cancellable: false },
-      async progress => await CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      async progress => await CommonDAO.withTempDirectory(await Code4i.makeWorkDirectory(), async workDirectory => {
         const connection = Code4i.getConnection();
         try {
           const restored = await uploadAndRestorePackage(arcadPackage, workDirectory, progress);
@@ -192,7 +192,7 @@ export namespace ArcadDAO {
 
   export async function patch(patches: ArcadPatch[], instance: ArcadInstance) {
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t(`Patching ARCAD instance {0}`, instance.code), cancellable: false },
-      async progress => await CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      async progress => await CommonDAO.withTempDirectory(await Code4i.makeWorkDirectory(), async workDirectory => {
         const failed: string[] = [];
         const arcadLibrary = (await Code4i.checkObject("QSYS", `ARC${instance.code}_ENG`, "*LIB")) ? `ARC${instance.code}_ENG` :
           (await Code4i.checkObject("QSYS", `ARC${instance.code}_FRA`, "*LIB")) ? `ARC${instance.code}_FRA` : "";

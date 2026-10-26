@@ -1,8 +1,8 @@
-import { ComplexTab } from "@halcyontech/vscode-ibmi-types/api/CustomUI";
 import vscode, { l10n } from "vscode";
 import { Code4i } from "../../code4i";
 import { JettyServer } from "../../types";
 import { addRow } from "../editor-utils";
+import { ComplexTab } from "@halcyontech/vscode-ibmi-types/webviews/CustomUI";
 
 export async function openShowJettyServerEditor(server: JettyServer) {
   const instanceSection = Code4i.customUI()

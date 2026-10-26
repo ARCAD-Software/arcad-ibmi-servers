@@ -199,7 +199,7 @@ export namespace AFSServerDAO {
 
   export async function update(installationPackage: vscode.Uri, server: AFSServer) {
     return await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: l10n.t("Updating ARCAD server {0}", server.name), cancellable: false }, async progress => {
-      return CommonDAO.withTempDirectory(`${Code4i.getConnection().getConfig().tempDir}/${Code4i.makeId()}`, async workDirectory => {
+      return CommonDAO.withTempDirectory(await Code4i.makeWorkDirectory(), async workDirectory => {
         progress.report({ message: l10n.t("uploading installation package"), increment: 25 });
         const setupFile = `${workDirectory}/setup.jar`;
         try {

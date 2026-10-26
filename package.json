@@ -417,19 +417,20 @@
     "nls": "npx @vscode/l10n-dev export --outDir ./l10n ./src"
   },
   "devDependencies": {
-    "@halcyontech/vscode-ibmi-types": "^2.16",
+    "@halcyontech/vscode-ibmi-types": "^3.0.13",
     "@types/adm-zip": "^0.5.7",
     "@types/node": "18.x",
     "@types/vscode": "1.80.0",
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
-    "@typescript-eslint/parser": "^6.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "@typescript-eslint/parser": "^8.72.0",
     "esbuild-loader": "^4.2.3",
+    "eslint": "^8.57.1",
     "typescript": "^5.2.2",
     "webpack": "^5.98.0",
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "adm-zip": "0.5.16",
-    "axios": "1.13.2"
+    "adm-zip": "0.6.1",
+    "axios": "1.20.0"
   }
 }

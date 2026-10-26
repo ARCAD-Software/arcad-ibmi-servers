@@ -59,6 +59,15 @@ export namespace Code4i {
     return codeForIBMi.tools;
   }
 
+  /**
+   * Returns a unique work directory path under the connection's temp directory.
+   * The config's raw `tempDir` defaults to "~/.vscode/tmp": the shell expands "~" but SFTP uploads don't,
+   * so use Code for IBM i's resolved path.
+   */
+  export async function makeWorkDirectory() {
+    return `${getConnection().getTempDirectory()}/${makeId()}`;
+  }
+
   export function makeId() {
     return Crypto.randomUUID();
   }
